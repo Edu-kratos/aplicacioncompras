@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unirse a Familia - Calendario de Compras</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .code-section {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .code-input {
+            width: 100%;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            text-align: center;
+            letter-spacing: 3px;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .code-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .code-input::placeholder {
+            color: #999;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .actions {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .info-box h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .info-box p {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+
+        .code-format {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .code-input {
+                font-size: 1.2rem;
+                padding: 15px;
+                letter-spacing: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Unirse a una Familia</h1>
+            <p>Ingresa el código de invitación de 8 caracteres para unirte a una familia</p>
+        </div>
+
+        <div id="message-container"></div>
+
+        <div class="info-box">
+            <h3>🔐 ¿Cómo funciona?</h3>
+            <p>
+                Para proteger la privacidad de las familias, necesitas un código de invitación único. 
+                Pídele al administrador de la familia el código de 8 caracteres (ej: <span class="code-format">A1B2C3D4</span>).
+            </p>
+        </div>
+
+        <div class="code-section">
+            <form id="unirse-form">
+                <div class="form-group">
+                    <label for="codigo-invitacion">� Código de Invitación</label>
+                    <input type="text" 
+                           id="codigo-invitacion" 
+                           class="code-input" 
+                           placeholder="A1B2C3D4"
+                           maxlength="8"
+                           pattern="[A-Za-z0-9]{8}"
+                           required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="btn-unirse">
+                    🚪 Unirse a la Familia
+                </button>
+            </form>
+        </div>
+
+        <div class="actions">
+            <a href="/app" class="btn btn-secondary" onclick="volverApp(event)">⏪ Volver a la App</a>
+            <a href="/logout" class="btn btn-secondary">🚪 Cerrar Sesión</a>
+        </div>
+    </div>
+
+    <script>
+        let usuarioActual = null;
+
+        async function cargarUsuario() {
+            try {
+                const response = await fetch('/api/usuario');
+                if (response.ok) {
+                    usuarioActual = await response.json();
+                    
+                    // Si ya tiene familia, redirigir a la app
+                    if (usuarioActual.id_familia) {
+                        window.location.href = '/app';
+                    }
+                } else {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                window.location.href = '/login';
+            }
+        }
+
+        // Formulario para unirse a familia
+        document.getElementById('unirse-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const codigo = document.getElementById('codigo-invitacion').value.trim();
+            const btn = document.getElementById('btn-unirse');
+            
+            // Validar formato
+            if (codigo.length !== 8) {
+                showMessage('error', 'El código debe tener exactamente 8 caracteres');
+                return;
+            }
+            
+            // Deshabilitar botón
+            btn.disabled = true;
+            btn.textContent = '🔄 Procesando...';
+            
+            try {
+                const response = await fetch('/api/familia/unirse-codigo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ codigo_invitacion: codigo })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('success', data.mensaje);
+                    
+                    // Actualizar datos del usuario y redirigir
+                    usuarioActual.id_familia = data.familia.id;
+                    
+                    // Redirigir a la app después de 2 segundos
+                    setTimeout(() => {
+                        window.location.href = '/app';
+                    }, 2000);
+                    
+                    // También actualizar la UI inmediatamente
+                    setTimeout(() => {
+                        // Ocultar formulario y mostrar mensaje de éxito
+                        document.getElementById('unirse-form').style.display = 'none';
+                        document.querySelector('.unirse-familia-container').innerHTML += `
+                            <div class="success-message" style="text-align: center; padding: 30px;">
+                                <h3 style="color: #10b981; margin-bottom: 15px;">✅ ¡Te has unido exitosamente!</h3>
+                                <p style="margin-bottom: 20px;">Ahora eres parte de la familia "${data.familia.nombre}"</p>
+                                <p style="font-size: 0.9rem; color: #666;">Serás redirigido a la aplicación en unos segundos...</p>
+                                <button onclick="window.location.href='/app'" style="margin-top: 20px; padding: 12px 24px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                                    🚀 Ir a la App ahora
+                                </button>
+                            </div>
+                        `;
+                    }, 500);
+                } else {
+                    showMessage('error', data.error || 'Error al unirse a la familia');
+                }
+            } catch (error) {
+                showMessage('error', 'Error de conexión. Intenta de nuevo.');
+            } finally {
+                // Rehabilitar botón
+                btn.disabled = false;
+                btn.textContent = '🚪 Unirse a la Familia';
+            }
+        });
+
+        // Auto-formato del código (mayúsculas y sin espacios)
+        document.getElementById('codigo-invitacion').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+
+        function showMessage(type, message) {
+            const container = document.getElementById('message-container');
+            const className = type === 'success' ? 'success-message' : 'error-message';
+            
+            container.innerHTML = `
+                <div class="${className}">
+                    <p>${message}</p>
+                </div>
+            `;
+
+            // Ocultar mensaje después de 5 segundos
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        function volverApp(event) {
+            event.preventDefault();
+            window.location.href = '/app';
+        }
+
+        // Cargar datos del usuario al iniciar
+        document.addEventListener('DOMContentLoaded', cargarUsuario);
+    </script>
+</body>
+</html>

@@ -1,0 +1,1064 @@
+<!-- BACKUP FUNCIONAL - NO MODIFICAR -->
+<!-- Este archivo contiene la versión funcional actual del sistema -->
+<!-- Fecha: 20/03/2026 -->
+<!-- Estado: Funcional con diseño verde actualizado -->
+
+<!-- Copia del archivo app.html actual -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Compras Familiares</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #45a049;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --info-color: #3498db;
+            --bg-color: #ffffff;
+            --bg-light: #f8f9fa;
+            --text-color: #2c3e50;
+            --text-light: #7f8c8d;
+            --border-color: #dee2e6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #059669 0%, #84cc16 100%);
+            min-height: 100vh;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--bg-color);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            z-index: 1000;
+            margin: 20px;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 12px 20px;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-light);
+            border-left-color: var(--primary-color);
+        }
+
+        .nav-item.active {
+            background: var(--bg-light);
+            border-left-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .main-content {
+            flex: 1;
+            background: transparent;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: var(--bg-color);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .content {
+            padding: 0;
+        }
+
+        .calendar-container {
+            background: var(--bg-color);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .day-cell {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 8px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .day-cell.clickable {
+            cursor: pointer;
+        }
+
+        .day-cell.clickable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-color: var(--primary-color);
+        }
+
+        .day-cell.hoy {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(69, 160, 73, 0.1) 100%);
+            border: 2px solid var(--primary-color);
+            font-weight: 600;
+        }
+
+        .day-header {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .day-date {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .products-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 8px 0;
+        }
+
+        .shopping-basket {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+            min-height: 60px;
+        }
+
+        .shopping-basket:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 24px rgba(76, 175, 80, 0.4);
+        }
+
+        .basket-icon {
+            font-size: 24px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .basket-count {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .basket-store {
+            font-size: 10px;
+            color: white;
+            font-weight: 500;
+            margin-top: 2px;
+            text-align: center;
+            max-width: 60px;
+            word-wrap: break-word;
+        }
+
+        .multiple-baskets {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+            min-height: 60px;
+        }
+
+        .multiple-baskets:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 24px rgba(76, 175, 80, 0.4);
+        }
+
+        .baskets-header {
+            text-align: center;
+        }
+
+        .create-basket {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 12px;
+            border-radius: 12px;
+            border: 2px dashed var(--primary-color);
+            background: var(--bg-color);
+            min-height: 60px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .create-basket:hover {
+            background: var(--primary-color);
+            transform: scale(1.05);
+        }
+
+        .create-basket:hover .create-basket-icon,
+        .create-basket:hover .create-basket-text {
+            color: white;
+        }
+
+        .create-basket-icon {
+            font-size: 20px;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        .create-basket-text {
+            font-size: 10px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .empty-products {
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            font-size: 0.8rem;
+            opacity: 0.5;
+        }
+
+        .empty-products:after {
+            content: "Sin compras pendientes";
+        }
+
+        .add-product-btn {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            opacity: 0.8;
+        }
+
+        .add-product-btn:hover {
+            transform: scale(1.1);
+            opacity: 1;
+            background: var(--secondary-color);
+        }
+
+        /* Estilos del modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: var(--bg-color);
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-light);
+            border-radius: 0 0 20px 20px;
+        }
+
+        .modal-footer button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .modal-footer button:first-child {
+            background: var(--bg-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-footer button:first-child:hover {
+            background: var(--bg-light);
+        }
+
+        .modal-footer .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .modal-footer .btn-primary:hover {
+            background: var(--secondary-color);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { 
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>🛒 Compras Familiares</h2>
+                <div id="user-info">
+                    <div id="user-name">Cargando...</div>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="compras" onclick="mostrarPagina('compras')">
+                    <i class="fas fa-calendar"></i> Calendario
+                </a>
+                <a href="#" class="nav-item" data-page="familia" onclick="mostrarPagina('familia')">
+                    <i class="fas fa-users"></i> Mi Familia
+                </a>
+                <a href="#" class="nav-item" data-page="estadisticas" onclick="mostrarPagina('estadisticas')">
+                    <i class="fas fa-chart-bar"></i> Estadísticas
+                </a>
+                <a href="#" class="nav-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title" id="page-title">📅 Calendario de Compras</h1>
+                <div id="family-info"></div>
+            </header>
+
+            <div class="content">
+                <!-- Page Content -->
+                <div id="page-compras" class="page-content active">
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <h3 id="semana-titulo">Calendario de 2 Semanas</h3>
+                            <div id="fecha-rango">Cargando...</div>
+                        </div>
+                        <div class="calendar-grid" id="calendar-grid">
+                            <!-- Calendar days will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div id="page-familia" class="page-content">
+                    <div class="calendar-container">
+                        <h3>👥 Mi Familia</h3>
+                        <div id="family-members"></div>
+                    </div>
+                </div>
+
+                <div id="page-estadisticas" class="page-content">
+                    <div class="calendar-container">
+                        <h3>📊 Estadísticas</h3>
+                        <div id="stats-content">
+                            <p>Estadísticas de compras...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para añadir producto -->
+    <div id="modal-producto" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Añadir Producto</h3>
+                <span class="close" onclick="cerrarModalProducto()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="modal-producto-form">
+                    <div class="form-group">
+                        <label>Nombre del producto:</label>
+                        <input type="text" id="modal-nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Cantidad:</label>
+                        <input type="number" id="modal-cantidad" min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría:</label>
+                        <select id="modal-categoria">
+                            <option value="General">General</option>
+                            <option value="Frutas">Frutas</option>
+                            <option value="Verduras">Verduras</option>
+                            <option value="Carnes">Carnes</option>
+                            <option value="Pescado">Pescado</option>
+                            <option value="Lácteos">Lácteos</option>
+                            <option value="Panadería">Panadería</option>
+                            <option value="Bebidas">Bebidas</option>
+                            <option value="Limpieza">Limpieza</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="modal-urgente">
+                            Urgente
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="cerrarModalProducto()">Cancelar</button>
+                <button type="button" onclick="guardarProductoModal()" class="btn-primary">Añadir Producto</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let usuarioActual = null;
+        let fechaSeleccionada = null;
+        let tiendaSeleccionada = null;
+
+        // Funciones del modal
+        function abrirModalProducto(fecha, productosExistentes) {
+            fechaSeleccionada = fecha;
+            
+            // Limpiar formulario
+            document.getElementById('modal-nombre').value = '';
+            document.getElementById('modal-cantidad').value = '1';
+            document.getElementById('modal-categoria').value = 'General';
+            document.getElementById('modal-urgente').checked = false;
+            
+            // Mostrar modal
+            document.getElementById('modal-producto').style.display = 'block';
+            
+            // Enfocar en el campo de nombre
+            setTimeout(() => {
+                document.getElementById('modal-nombre').focus();
+            }, 100);
+        }
+
+        function cerrarModalProducto() {
+            document.getElementById('modal-producto').style.display = 'none';
+            fechaSeleccionada = null;
+            tiendaSeleccionada = null;
+        }
+
+        async function guardarProductoModal() {
+            try {
+                const nombre = document.getElementById('modal-nombre').value.trim();
+                const cantidad = parseInt(document.getElementById('modal-cantidad').value);
+                const categoria = document.getElementById('modal-categoria').value;
+                const urgente = document.getElementById('modal-urgente').checked;
+                
+                if (!nombre) {
+                    alert('Por favor, introduce el nombre del producto');
+                    document.getElementById('modal-nombre').focus();
+                    return;
+                }
+                
+                // Preparar datos para enviar
+                const datosProducto = {
+                    nombre: nombre,
+                    cantidad: cantidad,
+                    categoria: categoria,
+                    urgente: urgente,
+                    fecha: fechaSeleccionada.toISOString().split('T')[0],
+                    tienda: tiendaSeleccionada || 'Sin tienda asignada'
+                };
+                
+                // Enviar al backend
+                const response = await fetch('/api/producto', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datosProducto)
+                });
+                
+                if (response.ok) {
+                    const nuevoProducto = await response.json();
+                    console.log('Producto añadido:', nuevoProducto);
+                    
+                    // Cerrar modal
+                    cerrarModalProducto();
+                    
+                    // Recargar calendario para mostrar el nuevo producto
+                    await cargarCalendarioPrincipal();
+                    
+                    // Mostrar mensaje de éxito
+                    mostrarMensajeExceso('✅ Producto añadido correctamente');
+                    
+                } else {
+                    const error = await response.json();
+                    console.error('Error añadiendo producto:', error);
+                    alert('Error al añadir el producto: ' + (error.error || 'Error desconocido'));
+                }
+                
+            } catch (error) {
+                console.error('Error en guardarProductoModal:', error);
+                alert('Error al añadir el producto. Por favor, inténtalo de nuevo.');
+            }
+        }
+
+        function mostrarMensajeExceso(mensaje) {
+            const mensajeDiv = document.createElement('div');
+            mensajeDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--success-color);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10000;
+                font-weight: 600;
+                animation: slideIn 0.3s ease;
+            `;
+            mensajeDiv.textContent = mensaje;
+            document.body.appendChild(mensajeDiv);
+            
+            // Ocultar mensaje después de 3 segundos
+            setTimeout(() => {
+                if (mensajeDiv && mensajeDiv.parentNode) {
+                    mensajeDiv.parentNode.removeChild(mensajeDiv);
+                }
+            }, 3000);
+        }
+
+        function crearNuevaCesta(fecha) {
+            // Cerrar cualquier modal existente
+            cerrarModalProducto();
+            
+            // Pedir nombre de la tienda
+            const nombreTienda = prompt('¿Para qué tienda quieres crear esta cesta? (Ej: Mercadona, Carrefour, Lidl...)');
+            
+            if (nombreTienda && nombreTienda.trim()) {
+                // Abrir modal para añadir productos a esta nueva cesta
+                fechaSeleccionada = new Date(fecha + 'T00:00:00');
+                tiendaSeleccionada = nombreTienda.trim();
+                
+                // Limpiar formulario
+                document.getElementById('modal-nombre').value = '';
+                document.getElementById('modal-cantidad').value = '1';
+                document.getElementById('modal-categoria').value = 'General';
+                document.getElementById('modal-urgente').checked = false;
+                
+                // Mostrar modal
+                document.getElementById('modal-producto').style.display = 'block';
+                
+                // Enfocar en el campo de nombre
+                setTimeout(() => {
+                    document.getElementById('modal-nombre').focus();
+                }, 100);
+                
+                mostrarMensajeExceso(`🛒 Cesta creada para ${tiendaSeleccionada}`);
+            }
+        }
+
+        // Función principal para cargar calendario
+        async function cargarCalendarioPrincipal() {
+            try {
+                const response = await fetch('/api/lista');
+                if (response.ok) {
+                    const productos = await response.json();
+                    console.log('Productos recibidos:', productos);
+                    
+                    // Generar grid de 14 días (2 semanas)
+                    const grid = document.getElementById('calendar-grid');
+                    grid.innerHTML = '';
+                    grid.style.gridTemplateColumns = 'repeat(7, 1fr)';
+                    
+                    // Actualizar etiquetas
+                    const hoy = new Date();
+                    const inicioSemana1 = new Date();
+                    const finSemana2 = new Date();
+                    finSemana2.setDate(hoy.getDate() + 13);
+                    
+                    document.getElementById('semana-titulo').textContent = 'Calendario de 2 Semanas';
+                    document.getElementById('fecha-rango').textContent = `${inicioSemana1.toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' })} - ${finSemana2.toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' })}`;
+                    
+                    for (let i = 0; i < 14; i++) {
+                        const fechaDia = new Date();
+                        fechaDia.setDate(hoy.getDate() + i);
+                        
+                        const diaSemana = fechaDia.getDay();
+                        const esFinDeSemana = diaSemana === 0;
+                        const esHoy = fechaDia.toDateString() === hoy.toDateString();
+                        
+                        // Filtrar productos para este día
+                        const productosDia = productos.filter(p => {
+                            if (!p || !p.fecha_agregado) {
+                                return false;
+                            }
+                            
+                            try {
+                                const fechaProducto = new Date(p.fecha_agregado);
+                                return fechaProducto.toDateString() === fechaDia.toDateString();
+                            } catch (error) {
+                                console.warn('Error procesando fecha de producto:', p, error);
+                                return false;
+                            }
+                        });
+                        
+                        // Agrupar productos por tienda para este día
+                        let productosHTML = '';
+                        let tienePendientes = false;
+                        
+                        if (productosDia && productosDia.length > 0) {
+                            const productosPendientes = productosDia.filter(p => !p.comprado);
+                            tienePendientes = productosPendientes.length > 0;
+                            
+                            if (tienePendientes) {
+                                // Agrupar productos por tienda
+                                const productosPorTienda = {};
+                                productosPendientes.forEach(p => {
+                                    const tienda = p.tienda || 'Sin tienda asignada';
+                                    if (!productosPorTienda[tienda]) {
+                                        productosPorTienda[tienda] = [];
+                                    }
+                                    productosPorTienda[tienda].push(p);
+                                });
+                                
+                                // Crear HTML con múltiples cestas
+                                const tiendas = Object.keys(productosPorTienda);
+                                if (tiendas.length === 1) {
+                                    // Una sola cesta
+                                    productosHTML = `
+                                        <div class="shopping-basket" onclick="abrirModalProducto(new Date(${fechaDia.getTime()}), [])">
+                                            <div class="basket-icon">🛒</div>
+                                            <div class="basket-count">${productosPorTienda[tiendas[0]].length}</div>
+                                            <div class="basket-store">${tiendas[0]}</div>
+                                        </div>
+                                    `;
+                                } else {
+                                    // Múltiples cestas
+                                    productosHTML = `
+                                        <div class="multiple-baskets" onclick="crearNuevaCesta('${fechaDia.toISOString().split('T')[0]}')">
+                                            <div class="baskets-header">
+                                                <div class="basket-icon">🛒</div>
+                                                <div class="basket-count">${productosPendientes.length}</div>
+                                                <div class="basket-store">${tiendas.length} tiendas</div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                            }
+                        }
+                        
+                        // Si no hay productos pendientes, mostrar opción de crear cesta
+                        if (!tienePendientes) {
+                            productosHTML = `
+                                <div class="empty-products">
+                                    <div class="create-basket" onclick="crearNuevaCesta('${fechaDia.toISOString().split('T')[0]}')">
+                                        <div class="create-basket-icon">🛒+</div>
+                                        <div class="create-basket-text">Crear cesta</div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        // Crear celda del día clickeable
+                        const cell = document.createElement('div');
+                        cell.className = `day-cell ${esHoy ? 'hoy' : ''} clickable`;
+                        cell.onclick = () => crearNuevaCesta(fechaDia.toISOString().split('T')[0]);
+                        
+                        const nombreDia = fechaDia.toLocaleDateString('es-ES', { weekday: 'long' });
+                        const nombreDiaCorto = nombreDia.split(',')[0];
+                        
+                        cell.innerHTML = `
+                            <div class="day-header">${nombreDiaCorto} ${esHoy ? '📍' : ''}</div>
+                            <div class="day-date">${fechaDia.getDate()} ${esFinDeSemana ? '🌴' : ''}</div>
+                            <div class="products-container">
+                                ${productosHTML}
+                            </div>
+                            <div class="add-product-btn" onclick="event.stopPropagation(); abrirModalProducto(new Date(${fechaDia.getTime()}), [])">
+                                <span>+</span>
+                            </div>
+                        `;
+                        
+                        grid.appendChild(cell);
+                    }
+                } else {
+                    console.error('La respuesta no fue OK:', response.status);
+                }
+            } catch (error) {
+                console.error('Error cargando calendario:', error);
+            }
+        }
+
+        // Funciones de navegación
+        function mostrarPagina(pageName) {
+            // Ocultar todas las páginas
+            document.querySelectorAll('.page-content').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Desactivar todos los items del menú
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Mostrar la página seleccionada
+            const pageElement = document.getElementById(`page-${pageName}`);
+            const navElement = document.querySelector(`[data-page="${pageName}"]`);
+            
+            if (pageElement) pageElement.classList.add('active');
+            if (navElement) navElement.classList.add('active');
+            
+            // Actualizar título
+            const titles = {
+                'compras': '📅 Calendario de Compras',
+                'familia': '👥 Mi Familia',
+                'estadisticas': '📊 Estadísticas'
+            };
+            const titleElement = document.getElementById('page-title');
+            if (titleElement) {
+                titleElement.textContent = titles[pageName] || 'App Compras Familiares';
+            }
+            
+            // Cerrar menú en móvil
+            if (window.innerWidth <= 768) {
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar) sidebar.classList.remove('open');
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('open');
+            }
+        }
+
+        async function cargarUsuario() {
+            try {
+                const response = await fetch('/api/usuario');
+                if (response.ok) {
+                    usuarioActual = await response.json();
+                    console.log('Usuario cargado:', usuarioActual);
+                    
+                    // Actualizar UI con datos del usuario
+                    const userElement = document.getElementById('user-name');
+                    if (userElement) {
+                        userElement.textContent = usuarioActual.nombre;
+                    }
+                } else {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Error cargando usuario:', error);
+                window.location.href = '/login';
+            }
+        }
+
+        async function cargarFamilia() {
+            try {
+                const response = await fetch('/api/familia/miembros');
+                if (response.ok) {
+                    const miembros = await response.json();
+                    console.log('Miembros cargados:', miembros);
+                    
+                    const familyInfo = document.getElementById('family-info');
+                    const familyMembers = document.getElementById('family-members');
+                    
+                    if (familyInfo) {
+                        familyInfo.innerHTML = `
+                            <strong>🏠 Miembros de la familia:</strong>
+                            <div class="family-members">
+                                ${miembros.map(m => `• ${m.nombre}`).join('<br>')}
+                            </div>
+                        `;
+                    }
+                    
+                    if (familyMembers) {
+                        familyMembers.innerHTML = `
+                            <div class="members-list">
+                                ${miembros.map(m => `
+                                    <div class="member-item">
+                                        <div class="member-name">${m.nombre}</div>
+                                        <div class="member-email">${m.email || 'Sin email'}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error cargando familia:', error);
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/login';
+            } catch (error) {
+                window.location.href = '/login';
+            }
+        }
+
+        // Event listeners para cerrar modales al hacer clic fuera
+        window.onclick = function(event) {
+            const modalProducto = document.getElementById('modal-producto');
+            
+            if (event.target === modalProducto) {
+                cerrarModalProducto();
+            }
+        }
+
+        // Event listener para tecla Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                cerrarModalProducto();
+            }
+        });
+
+        // Cerrar menú al hacer clic fuera en móvil
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.querySelector('.mobile-menu-toggle');
+            
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(event.target) && 
+                !menuToggle.contains(event.target) &&
+                sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('DOM cargado, iniciando inicialización...');
+            
+            try {
+                console.log('Paso 1: Cargando usuario...');
+                await cargarUsuario();
+                console.log('Paso 2: Usuario cargado, cargando familia...');
+                await cargarFamilia();
+                console.log('Paso 3: Familia cargada, cargando calendario...');
+                await cargarCalendarioPrincipal();
+                console.log('Paso 4: Calendario cargado');
+            } catch (error) {
+                console.error('Error en inicialización:', error);
+            }
+            
+            // Auto-recargar calendario cada 30 segundos
+            setInterval(cargarCalendarioPrincipal, 30000);
+        });
+    </script>
+</body>
+</html>

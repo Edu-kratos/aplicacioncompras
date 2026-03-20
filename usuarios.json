@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "nombre": "Eduardo",
+    "email": "edu_wor99@hotmail.com",
+    "password": "4e1e2290413bf00e60347cb035ac78dbdbaf1ef43ac3ca7d016bb8bec28f1b02",
+    "id_familia": 1,
+    "fecha_registro": "2026-03-20 00:40:20"
+  },
+  {
+    "id": 2,
+    "nombre": "Edu",
+    "email": "edu_wow99@hotmail.com",
+    "password": "4e1e2290413bf00e60347cb035ac78dbdbaf1ef43ac3ca7d016bb8bec28f1b02",
+    "id_familia": 1,
+    "fecha_registro": "2026-03-20 00:44:22"
+  },
+  {
+    "id": 3,
+    "nombre": "Dayana ",
+    "email": "dayanaivanova17@hotmail.com",
+    "password": "d6edb30b59800c5ec39c9393673408caf4201e8fa55ec90e25b781376b3b1218",
+    "id_familia": null,
+    "fecha_registro": "2026-03-20 13:46:55"
+  }
+]

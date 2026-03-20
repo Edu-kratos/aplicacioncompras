@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "nombre": "Leche",
+    "cantidad": 1,
+    "categoria": "General",
+    "id_familia": 1,
+    "id_usuario_agrego": 1,
+    "nombre_usuario_agrego": "Eduardo",
+    "fecha_agregado": "2026-03-20 15:37:13",
+    "comprado": false,
+    "urgente": false
+  },
+  {
+    "id": 2,
+    "nombre": "Leche",
+    "cantidad": 1,
+    "categoria": "General",
+    "tienda": "Sin tienda asignada",
+    "id_familia": 1,
+    "id_usuario_agrego": 1,
+    "nombre_usuario_agrego": "Eduardo",
+    "fecha_agregado": "2026-03-20 21:24:21",
+    "comprado": false,
+    "urgente": false
+  }
+]

@@ -1,0 +1,28 @@
+[
+  {
+    "id": 1,
+    "nombre": "Leche",
+    "cantidad": "1",
+    "categoria": "General",
+    "fecha": "2026-03-20",
+    "id_familia": null,
+    "id_usuario_agrego": 2,
+    "nombre_usuario_agrego": "Edu",
+    "fecha_agregado": "2026-03-20 01:38:49",
+    "comprado": false,
+    "urgente": false
+  },
+  {
+    "id": 3,
+    "nombre": "Coca cola",
+    "cantidad": "2",
+    "categoria": "General",
+    "fecha": "2026-03-20",
+    "id_familia": null,
+    "id_usuario_agrego": 3,
+    "nombre_usuario_agrego": "Dayana ",
+    "fecha_agregado": "2026-03-20 13:47:34",
+    "comprado": false,
+    "urgente": false
+  }
+]
