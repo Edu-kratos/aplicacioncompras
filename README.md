@@ -23,7 +23,7 @@ Aplicación web móvil para que familias puedan planificar sus compras semanales
    ```bash
    python app.py
    ```
-4. **Abrir en el navegador**: `http://localhost:5000`
+4. **Abrir en el navegador**: `http://localhost:5001`
 
 ## 📱 Uso
 

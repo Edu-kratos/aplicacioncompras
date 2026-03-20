@@ -4,48 +4,72 @@
 from flask import Flask, render_template, request, jsonify, session, redirect
 import json
 import os
+import logging
+import threading
 from datetime import datetime, timedelta
 import hashlib
 import random
 import string
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = 'compras_familiares_2024'
+app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24).hex())
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Archivos de datos
 ARCHIVO_USUARIOS = 'usuarios.json'
 ARCHIVO_FAMILIAS = 'familias.json'
-ARCHIVO_LISTAS = 'listas.json'  # Corregido: usar listas.json en lugar de calendario_compras.json
+ARCHIVO_LISTAS = 'listas.json'
+
+# Lock para acceso concurrente a archivos JSON
+_file_lock = threading.Lock()
 
 # Funciones de gestión de datos
 def cargar_datos(archivo):
     """Carga datos desde un archivo JSON"""
-    try:
-        if not os.path.exists(archivo):
-            with open(archivo, 'w') as f:
-                json.dump([], f)
-        with open(archivo, 'r') as f:
-            return json.load(f)
-    except:
-        return []
+    with _file_lock:
+        try:
+            if not os.path.exists(archivo):
+                with open(archivo, 'w', encoding='utf-8') as f:
+                    json.dump([], f)
+            with open(archivo, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError) as e:
+            logger.error(f"Error cargando {archivo}: {e}")
+            return []
+
+def guardar_datos(datos, archivo):
+    """Guarda datos en un archivo JSON"""
+    with _file_lock:
+        with open(archivo, 'w', encoding='utf-8') as f:
+            json.dump(datos, f, indent=2, ensure_ascii=False)
+
+def siguiente_id(lista):
+    """Genera el siguiente ID seguro basado en el máximo existente"""
+    if not lista:
+        return 1
+    return max(item.get('id', 0) for item in lista) + 1
 
 def generar_codigo_invitacion():
     """Genera un código de invitación único de 8 caracteres"""
     while True:
-        # Generar código de 8 caracteres (letras y números)
         codigo = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-        
-        # Verificar que no exista
         familias = cargar_datos(ARCHIVO_FAMILIAS)
         if not any(familia.get('codigo_invitacion') == codigo for familia in familias):
             return codigo
 
-def guardar_datos(datos, archivo):
-    """Guarda datos en un archivo JSON"""
-    with open(archivo, 'w') as f:
-        json.dump(datos, f, indent=2)
+def encriptar_password(password):
+    """Encripta una contraseña con werkzeug (pbkdf2)"""
+    return generate_password_hash(password)
 
-# Funciones obsoletas eliminadas para simplificar el código
+def verificar_password(password, hash_guardado):
+    """Verifica contraseña soportando formato legacy SHA-256 y nuevo werkzeug"""
+    if hash_guardado.startswith('pbkdf2:') or hash_guardado.startswith('scrypt:'):
+        return check_password_hash(hash_guardado, password)
+    # Fallback: formato legacy SHA-256 (usuarios existentes)
+    return hashlib.sha256(password.encode()).hexdigest() == hash_guardado
 
 # Rutas principales
 @app.route('/')
@@ -84,6 +108,14 @@ def app_page():
 def api_registro():
     """Registra un nuevo usuario"""
     data = request.json
+    if not data:
+        return jsonify({'error': 'Datos requeridos'}), 400
+    
+    # Validar campos obligatorios
+    for campo in ('nombre', 'email', 'password'):
+        if not data.get(campo, '').strip():
+            return jsonify({'error': f'El campo {campo} es obligatorio'}), 400
+    
     usuarios = cargar_datos(ARCHIVO_USUARIOS)
     familias = cargar_datos(ARCHIVO_FAMILIAS)
     
@@ -94,15 +126,17 @@ def api_registro():
     
     # Buscar o crear familia
     id_familia = None
+    codigo_invitacion_resp = None
     if data.get('nombre_familia'):
         for familia in familias:
             if familia['nombre'].lower() == data['nombre_familia'].lower():
                 id_familia = familia['id']
+                codigo_invitacion_resp = familia.get('codigo_invitacion')
                 break
         
         if id_familia is None:
             nueva_familia = {
-                'id': len(familias) + 1,
+                'id': siguiente_id(familias),
                 'nombre': data['nombre_familia'],
                 'codigo_invitacion': generar_codigo_invitacion(),
                 'fecha_creacion': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -110,12 +144,13 @@ def api_registro():
             familias.append(nueva_familia)
             guardar_datos(familias, ARCHIVO_FAMILIAS)
             id_familia = nueva_familia['id']
+            codigo_invitacion_resp = nueva_familia['codigo_invitacion']
     
     # Crear usuario
     nuevo_usuario = {
-        'id': len(usuarios) + 1,
-        'nombre': data['nombre'],
-        'email': data['email'],
+        'id': siguiente_id(usuarios),
+        'nombre': data['nombre'].strip(),
+        'email': data['email'].strip(),
         'password': encriptar_password(data['password']),
         'id_familia': id_familia,
         'fecha_registro': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -135,18 +170,26 @@ def api_registro():
     return jsonify({
         'usuario': session['usuario'],
         'mensaje': 'Usuario registrado exitosamente',
-        'codigo_invitacion': nueva_familia.get('codigo_invitacion') if id_familia else None
+        'codigo_invitacion': codigo_invitacion_resp
     }), 201
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
     """Inicia sesión de usuario"""
     data = request.json
+    if not data or not data.get('email') or not data.get('password'):
+        return jsonify({'error': 'Email y contraseña son obligatorios'}), 400
+    
     usuarios = cargar_datos(ARCHIVO_USUARIOS)
     
-    for usuario in usuarios:
+    for i, usuario in enumerate(usuarios):
         if usuario['email'] == data['email']:
-            if usuario['password'] == encriptar_password(data['password']):
+            if verificar_password(data['password'], usuario['password']):
+                # Migrar hash legacy a werkzeug si es necesario
+                if not usuario['password'].startswith(('pbkdf2:', 'scrypt:')):
+                    usuarios[i]['password'] = encriptar_password(data['password'])
+                    guardar_datos(usuarios, ARCHIVO_USUARIOS)
+                
                 session['usuario'] = {
                     'id': usuario['id'],
                     'nombre': usuario['nombre'],
@@ -256,116 +299,59 @@ def api_logout():
     session.pop('usuario', None)
     return jsonify({'mensaje': 'Sesión cerrada'})
 
-def encriptar_password(password):
-    """Encripta una contraseña"""
-    return hashlib.sha256(password.encode()).hexdigest()
-
 # API de lista de compras
+FORMATOS_FECHA = [
+    '%Y-%m-%d %H:%M:%S',
+    '%Y-%m-%d %H:%M',
+    '%Y-%m-%d %H:%M:%S.%f'
+]
+
+def normalizar_fecha(fecha_str):
+    """Intenta parsear una fecha en múltiples formatos y devuelve formato normalizado o None"""
+    if not isinstance(fecha_str, str):
+        return None
+    for formato in FORMATOS_FECHA:
+        try:
+            return datetime.strptime(fecha_str, formato).strftime('%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            continue
+    return None
+
 @app.route('/api/lista', methods=['GET'])
 def obtener_lista():
     """Obtiene la lista de compras del usuario"""
-    print(f"[DEBUG] Petición recibida a /api/lista")
-    print(f"[DEBUG] Headers: {dict(request.headers)}")
-    print(f"[DEBUG] Cookies: {request.cookies}")
-    print(f"[DEBUG] Sesión actual: {dict(session)}")
+    if 'usuario' not in session:
+        return jsonify({'error': 'No autorizado', 'redirect': '/login'}), 401
     
-    try:
-        if 'usuario' not in session:
-            print(f"[DEBUG] Usuario no en sesión - redirigiendo a login")
-            return jsonify({'error': 'No autorizado', 'redirect': '/login'}), 401
-        
-        listas = cargar_datos(ARCHIVO_LISTAS)
-        print(f"[DEBUG] Cargando {len(listas)} productos del archivo")
-        
-        id_familia = session['usuario']['id_familia']
-        id_usuario_actual = session['usuario']['id']
-        print(f"[DEBUG] Usuario: {session['usuario']['nombre']}, ID: {id_usuario_actual}, Familia: {id_familia}")
-        
-        # Filtrar productos segun el tipo de usuario
-        if id_familia:
-            # Usuario con familia: solo productos de su familia
-            productos_familia = [p for p in listas if p.get('id_familia') == id_familia]
-            print(f"[DEBUG] Usuario con familia, encontrados {len(productos_familia)} productos con id_familia")
-            # Debug: mostrar primeros 3 productos
-            for i, p in enumerate(productos_familia[:3]):
-                print(f"[DEBUG] Producto {i}: {p}")
-        else:
-            # Usuario individual: solo sus propios productos
-            productos_familia = [p for p in listas if p.get('id_usuario_agrego') == id_usuario_actual]
-            print(f"[DEBUG] Usuario individual, encontrados {len(productos_familia)} productos con id_usuario_agrego")
-            # Debug: mostrar primeros 3 productos
-            for i, p in enumerate(productos_familia[:3]):
-                print(f"[DEBUG] Producto {i}: {p}")
-        
-        # Validar y depurar productos antes de devolver
-        productos_validos = []
-        for p in productos_familia:
-            # Verificar que tenga todos los campos requeridos
-            if not all(key in p for key in ['id', 'nombre', 'categoria', 'cantidad']):
-                print(f"[ERROR] Producto inválido (campos faltantes): {p}")
-                continue
-            
-            # Verificar que tenga fecha_agregado y que sea válida
-            if 'fecha_agregado' not in p:
-                print(f"[ERROR] Producto sin fecha_agregado: {p}")
-                continue
-                
-            try:
-                fecha_agregado = p['fecha_agregado']
-                # Parsear fecha - acepta múltiples formatos
-                if isinstance(fecha_agregado, str):
-                    # Intentar parsear diferentes formatos de fecha
-                    formatos_fecha = [
-                        '%Y-%m-%d %H:%M:%S',
-                        '%Y-%m-%d %H:%M',
-                        '%Y-%m-%d %H:%M:%S.%f'
-                    ]
-                    
-                    fecha_parseada = None
-                    for formato in formatos_fecha:
-                        try:
-                            from datetime import datetime
-                            fecha_parseada = datetime.strptime(fecha_agregado, formato)
-                            print(f"[DEBUG] Fecha parseada exitosamente: {fecha_parseada} (formato: {formato})")
-                            break
-                        except ValueError:
-                            print(f"[DEBUG] Formato {formato} fallido para fecha: {fecha_agregado}")
-                            continue
-                    
-                    if fecha_parseada is None:
-                        print(f"[ERROR] No se pudo parsear fecha: {fecha_agregado}")
-                        continue
-                        
-                    # Usar la fecha parseada exitosamente
-                    p['fecha_agregado'] = fecha_parseada.strftime('%Y-%m-%d %H:%M:%S')
-                    
-            except Exception as e:
-                print(f"[ERROR] Error procesando fecha de producto {p.get('id', 'desconocido')}: {p.get('fecha_agregado', 'no-definida')} - Error: {e}")
-                continue
-            
-            productos_validos.append(p)
-        
-        print(f"[DEBUG] Devolviendo {len(productos_validos)} productos válidos")
-        
-        # Ordenar por fecha agregado (mas reciente primero)
-        productos_validos.sort(key=lambda x: x['fecha_agregado'], reverse=True)
-        
-        try:
-            response_data = jsonify(productos_validos)
-            print(f"[DEBUG] Respuesta JSON creada correctamente")
-            print(f"[DEBUG] Tipo de respuesta: {type(response_data)}")
-            return response_data
-        except Exception as json_error:
-            print(f"[ERROR] Error creando JSON: {str(json_error)}")
-            print(f"[ERROR] Tipo de error JSON: {type(json_error)}")
-            return jsonify({'error': 'Error al crear respuesta JSON'}), 500
+    listas = cargar_datos(ARCHIVO_LISTAS)
+    id_familia = session['usuario']['id_familia']
+    id_usuario_actual = session['usuario']['id']
     
-    except Exception as e:
-        print(f"[ERROR] Error en obtener_lista: {str(e)}")
-        print(f"[ERROR] Tipo de error: {type(e)}")
-        import traceback
-        print(f"[ERROR] Traceback: {traceback.format_exc()}")
-        return jsonify({'error': 'Error interno del servidor'}), 500
+    # Filtrar productos segun el tipo de usuario
+    if id_familia:
+        productos_familia = [p for p in listas if p.get('id_familia') == id_familia]
+    else:
+        productos_familia = [p for p in listas if p.get('id_usuario_agrego') == id_usuario_actual]
+    
+    # Validar productos antes de devolver
+    campos_requeridos = ('id', 'nombre', 'categoria', 'cantidad', 'fecha_agregado')
+    productos_validos = []
+    for p in productos_familia:
+        if not all(key in p for key in campos_requeridos):
+            logger.warning(f"Producto inválido (campos faltantes): {p.get('id', '?')}")
+            continue
+        
+        fecha_normalizada = normalizar_fecha(p['fecha_agregado'])
+        if fecha_normalizada is None:
+            logger.warning(f"Fecha inválida en producto {p.get('id', '?')}: {p['fecha_agregado']}")
+            continue
+        
+        p['fecha_agregado'] = fecha_normalizada
+        productos_validos.append(p)
+    
+    # Ordenar por fecha agregado (mas reciente primero)
+    productos_validos.sort(key=lambda x: x['fecha_agregado'], reverse=True)
+    return jsonify(productos_validos)
 
 # API de productos (rutas unificadas)
 @app.route('/api/producto', methods=['POST'])
@@ -375,14 +361,17 @@ def agregar_producto():
         return jsonify({'error': 'No autorizado'}), 401
     
     data = request.json
+    if not data or not data.get('nombre', '').strip():
+        return jsonify({'error': 'El nombre del producto es obligatorio'}), 400
+    
     listas = cargar_datos(ARCHIVO_LISTAS)
     
     nuevo_producto = {
-        'id': len(listas) + 1,
-        'nombre': data['nombre'],
+        'id': siguiente_id(listas),
+        'nombre': data['nombre'].strip(),
         'cantidad': data.get('cantidad', 1),
         'categoria': data.get('categoria', 'General'),
-        'tienda': data.get('tienda', 'Sin tienda asignada'),  # Nuevo campo
+        'tienda': data.get('tienda', 'Sin tienda asignada'),
         'id_familia': session['usuario']['id_familia'],
         'id_usuario_agrego': session['usuario']['id'],
         'nombre_usuario_agrego': session['usuario']['nombre'],
