@@ -4,877 +4,70 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>App Compras Familiares</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #2ecc71;
-            --secondary-color: #27ae60;
-            --success-color: #27ae60;
-            --danger-color: #e74c3c;
-            --warning-color: #f39c12;
-            --info-color: #3498db;
-            --bg-color: #ffffff;
-            --bg-light: #f8f9fa;
-            --text-color: #2c3e50;
-            --text-light: #7f8c8d;
-            --border-color: #ecf0f1;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #059669 0%, #84cc16 100%);
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-        }
-
-        .app-container {
-            display: grid;
-            grid-template-columns: 80px 1fr;
-            height: 100vh;
-            background: transparent;
-        }
-
-        .sidebar {
-            background: rgba(255, 255, 255, 0.95);
-            border-right: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-            overflow-y: auto;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            padding: 15px 10px;
-            gap: 15px;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-
-        .sidebar-header {
-            display: none;
-        }
-
-        .sidebar-nav {
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 8px;
-            color: var(--text-color);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            text-align: center;
-            min-height: 60px;
-        }
-
-        .nav-item i {
-            font-size: 20px;
-            margin-bottom: 4px;
-        }
-
-        .nav-item:hover {
-            background: rgba(46, 204, 113, 0.15);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(46, 204, 113, 0.2);
-        }
-
-        .nav-item.active {
-            background: var(--primary-color);
-            color: white;
-            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
-        }
-
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .header {
-            padding: 20px 25px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .page-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--text-color);
-        }
-
-        .content {
-            padding: 25px;
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .page-content {
-            display: none;
-        }
-
-        .page-content.active {
-            display: block;
-        }
-
-        .calendar-container {
-            background: transparent;
-            border-radius: 0;
-            padding: 0;
-            box-shadow: none;
-        }
-
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-        }
-
-        .day-cell {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 8px;
-            min-height: 70px;
-            display: flex;
-            flex-direction: column;
-            transition: all 0.3s ease;
-            position: relative;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-
-        .day-cell.clickable {
-            cursor: pointer;
-        }
-
-        .day-cell.clickable:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            border-color: var(--primary-color);
-        }
-
-        .day-cell.hoy {
-            background: rgba(255, 255, 255, 0.8);
-            border: 2px solid var(--primary-color);
-            font-weight: 600;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-
-        .day-header {
-            font-weight: 600;
-            color: var(--text-color);
-            margin-bottom: 4px;
-            font-size: 0.8rem;
-        }
-
-        .day-date {
-            font-size: 0.7rem;
-            color: var(--text-light);
-            margin-bottom: 4px;
-        }
-
-        .products-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 2px 0;
-        }
-
-        .shopping-basket {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 4px;
-            border-radius: 8px;
-            background: var(--primary-color);
-            box-shadow: 0 3px 6px rgba(46, 204, 113, 0.25);
-            min-height: 28px;
-        }
-
-        .shopping-basket:hover {
-            transform: scale(1.05);
-            box-shadow: 0 3px 6px rgba(46, 204, 113, 0.3);
-        }
-
-        .basket-icon {
-            font-size: 12px;
-            color: white;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-
-        .basket-count {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            background: #ff4757;
-            color: white;
-            border-radius: 50%;
-            width: 12px;
-            height: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 8px;
-            font-weight: bold;
-            border: 1px solid white;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-
-        .basket-store {
-            font-size: 5px;
-            color: white;
-            font-weight: 500;
-            margin-top: 1px;
-            text-align: center;
-            max-width: 30px;
-            word-wrap: break-word;
-        }
-
-        .multiple-baskets {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 2px;
-            border-radius: 4px;
-            background: var(--primary-color);
-            box-shadow: 0 2px 4px rgba(46, 204, 113, 0.2);
-            min-height: 22px;
-        }
-
-        .multiple-baskets:hover {
-            transform: scale(1.05);
-            box-shadow: 0 3px 6px rgba(46, 204, 113, 0.3);
-        }
-
-        .baskets-header {
-            text-align: center;
-        }
-
-        .simple-add-basket {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 6px 10px;
-            border-radius: 8px;
-            background: rgba(46, 204, 113, 0.1);
-            border: 1px solid var(--primary-color);
-            min-height: 28px;
-        }
-
-        .simple-add-basket:hover {
-            background: var(--primary-color);
-            transform: scale(1.05);
-        }
-
-        .simple-add-basket:hover .simple-basket-icon,
-        .simple-add-basket:hover .simple-basket-text {
-            color: white;
-        }
-
-        .simple-basket-icon {
-            font-size: 12px;
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-
-        .simple-basket-text {
-            font-size: 10px;
-            color: var(--text-light);
-            font-weight: 600;
-        }
-
-        .empty-products {
-            min-height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-light);
-            font-size: 0.8rem;
-            opacity: 0.5;
-        }
-
-        .empty-products:after {
-            content: "Sin compras pendientes";
-        }
-
-        /* Estilos del modal */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 10000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            animation: fadeIn 0.3s ease;
-            overflow-y: auto;
-        }
-
-        .modal.show {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: var(--bg-color);
-            margin: 0;
-            padding: 0;
-            border-radius: 12px;
-            width: 95%;
-            max-width: 320px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-            animation: slideIn 0.3s ease;
-            position: relative;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            border-bottom: 1px solid var(--border-color);
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            border-radius: 12px 12px 0 0;
-        }
-
-        .modal-header h3 {
-            margin: 0;
-            font-size: 1rem;
-        }
-
-        .close {
-            color: white;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            line-height: 1;
-            transition: opacity 0.3s ease;
-        }
-
-        .close:hover {
-            opacity: 0.7;
-        }
-
-        .modal-body {
-            padding: 12px;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-            padding: 12px;
-            border-top: 1px solid var(--border-color);
-            background: var(--bg-light);
-            border-radius: 0 0 12px 12px;
-        }
-
-        .modal-footer button {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .modal-footer button:first-child {
-            background: var(--bg-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-        }
-
-        .modal-footer button:first-child:hover {
-            background: var(--bg-light);
-        }
-
-        .modal-footer .btn-primary {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .modal-footer .btn-primary:hover {
-            background: var(--secondary-color);
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: var(--text-color);
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            font-size: 1rem;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-        }
-
-        /* Estilos para modal de tienda */
-        .dia-info {
-            text-align: center;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: rgba(46, 204, 113, 0.1);
-            border-radius: 8px;
-            border: 1px solid var(--primary-color);
-        }
-
-        .dia-info h4 {
-            margin: 0 0 5px 0;
-            color: var(--primary-color);
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        .dia-info p {
-            margin: 0;
-            color: var(--text-light);
-            font-size: 0.8rem;
-        }
-
-        .tiendas-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 6px;
-            margin-bottom: 15px;
-        }
-
-        .tiendas-grid .tienda-item:nth-child(5) {
-            grid-column: span 2;
-            justify-content: center;
-        }
-
-        .tienda-item {
-            display: flex;
-            align-items: center;
-            padding: 8px;
-            border: 2px solid var(--border-color);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: var(--bg-color);
-        }
-
-        .tienda-item:hover {
-            border-color: var(--primary-color);
-            background: rgba(46, 204, 113, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .tienda-item.selected {
-            border-color: var(--primary-color);
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .tienda-icon {
-            font-size: 16px;
-            margin-right: 8px;
-        }
-
-        .tienda-nombre {
-            font-weight: 500;
-            font-size: 0.8rem;
-        }
-
-        .tienda-personalizada {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .tienda-personalizada .form-group {
-            margin-bottom: 0;
-        }
-
-        .tienda-personalizada label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 500;
-            color: var(--text-color);
-            font-size: 0.8rem;
-        }
-
-        .tienda-personalizada input {
-            width: 100%;
-            padding: 6px 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 0.8rem;
-        }
-
-        .tienda-personalizada input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.2);
-        }
-
-        /* Botón flotante para acción rápida */
-        .fab {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background: var(--primary-color);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(46, 204, 113, 0.4);
-            transition: all 0.3s ease;
-            z-index: 999;
-            color: white;
-            font-size: 24px;
-        }
-
-        .fab:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 25px rgba(46, 204, 113, 0.5);
-            background: var(--secondary-color);
-        }
-
-        .fab:active {
-            transform: scale(0.95);
-        }
-
-        /* Notificaciones */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            z-index: 10001;
-            font-weight: 500;
-            animation: slideInRight 0.3s ease;
-            max-width: 300px;
-        }
-
-        .notification.success {
-            border-left: 4px solid var(--primary-color);
-        }
-
-        .notification.error {
-            border-left: 4px solid var(--danger-color);
-        }
-
-        .notification.info {
-            border-left: 4px solid var(--info-color);
-        }
-
-        /* Estilos para gestión de cestas */
-        .cestas-container {
-            max-height: 400px;
-            overflow-y: auto;
-            padding: 10px 0;
-        }
-
-        .cesta-item {
-            background: var(--bg-light);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .cesta-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-color: var(--primary-color);
-        }
-
-        .cesta-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .cesta-tienda {
-            font-weight: 600;
-            color: var(--primary-color);
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .cesta-fecha {
-            color: var(--text-light);
-            font-size: 0.9rem;
-        }
-
-        .cesta-acciones {
-            display: flex;
-            gap: 8px;
-        }
-
-        .cesta-btn {
-            padding: 4px 8px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.2s ease;
-        }
-
-        .cesta-btn.ver {
-            background: var(--info-color);
-            color: white;
-        }
-
-        .cesta-btn.editar {
-            background: var(--warning-color);
-            color: white;
-        }
-
-        .cesta-btn.eliminar {
-            background: var(--danger-color);
-            color: white;
-        }
-
-        .cesta-btn:hover {
-            transform: scale(1.05);
-            opacity: 0.8;
-        }
-
-        .cesta-productos {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .producto-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .producto-item:last-child {
-            border-bottom: none;
-        }
-
-        .producto-info {
-            flex: 1;
-        }
-
-        .producto-nombre {
-            font-weight: 500;
-            color: var(--text-color);
-        }
-
-        .producto-detalles {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-top: 4px;
-        }
-
-        .producto-cantidad {
-            background: var(--bg-light);
-            padding: 2px 6px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            color: var(--text-color);
-        }
-
-        .producto-categoria {
-            background: var(--primary-color);
-            color: white;
-            padding: 2px 6px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-        }
-
-        .producto-urgente {
-            background: var(--danger-color);
-            color: white;
-            padding: 2px 6px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.6; }
-            100% { opacity: 1; }
-        }
-
-        .empty-cestas {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-light);
-            font-style: italic;
-        }
-
-        .empty-cestas i {
-            font-size: 48px;
-            color: var(--text-light);
-            margin-bottom: 15px;
-            opacity: 0.5;
-        }
-            @keyframes slideInRight {
-            from { 
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to { 
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideIn {
-            from { 
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to { 
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .app-container {
-                flex-direction: column;
-                padding: 10px;
-            }
-
-            .sidebar {
-                display: none;
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <div class="app-container">
         <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" data-page="compras" onclick="mostrarPagina('compras')" title="Calendario">
-                    <i class="fas fa-calendar"></i>
-                    <span>Calendario</span>
+        <nav class="sidebar">
+            <div class="sidebar-nav">
+                <a href="#" class="nav-item active" onclick="mostrarInicio(); return false;">
+                    <i class="fas fa-home"></i>
+                    <span>Inicio</span>
                 </a>
-                <a href="#" class="nav-item" data-page="familia" onclick="mostrarPagina('familia')" title="Mi Familia">
-                    <i class="fas fa-users"></i>
-                    <span>Familia</span>
+                <a href="#" class="nav-item" onclick="mostrarCompras(); return false;">
+                    <i class="fas fa-shopping-basket"></i>
+                    <span>Compras</span>
                 </a>
-                <a href="#" class="nav-item" data-page="estadisticas" onclick="mostrarPagina('estadisticas')" title="Estadísticas">
+                <a href="#" class="nav-item" onclick="mostrarEstadisticas(); return false;">
                     <i class="fas fa-chart-bar"></i>
                     <span>Estadísticas</span>
                 </a>
-                <a href="#" class="nav-item" onclick="logout()" title="Cerrar Sesión">
+                <a href="#" class="nav-item" onclick="mostrarConfiguracion(); return false;">
+                    <i class="fas fa-cog"></i>
+                    <span>Config</span>
+                </a>
+                <a href="#" class="nav-item" onclick="cerrarSesion(); return false;">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Salir</span>
                 </a>
-            </nav>
-        </aside>
+            </div>
+        </nav>
+
+        <!-- Header -->
+        <header class="header">
+            <h1><i class="fas fa-shopping-cart"></i> App Compras Familiares</h1>
+            <div class="user-info">
+                <div>
+                    <div class="user-name" id="user-name">Cargando...</div>
+                    <div class="family-name" id="family-name">Cargando...</div>
+                </div>
+                <button class="logout-btn" onclick="cerrarSesion()">
+                    <i class="fas fa-sign-out-alt"></i> Salir
+                </button>
+            </div>
+        </header>
 
         <!-- Main Content -->
         <main class="main-content">
-            <header class="header">
-                <h1 class="page-title" id="page-title">📅 Calendario de Compras</h1>
-                <div id="family-info"></div>
-            </header>
-
-            <div class="content">
-                <!-- Page Content -->
-                <div id="page-compras" class="page-content active">
-                    <div class="calendar-container">
-                        <div class="calendar-header">
-                            <h3 id="semana-titulo">Calendario de 2 Semanas</h3>
-                            <div id="fecha-rango">Cargando...</div>
-                        </div>
-                        <div class="calendar-grid" id="calendar-grid">
-                            <!-- Los días se generarán dinámicamente -->
-                        </div>
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <h2 class="calendar-title">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span id="calendar-month">Cargando...</span>
+                    </h2>
+                    <div class="calendar-nav">
+                        <button onclick="cargarCalendarioAnterior()">
+                            <i class="fas fa-chevron-left"></i> Anterior
+                        </button>
+                        <button onclick="cargarCalendarioSiguiente()">
+                            Siguiente <i class="fas fa-chevron-right"></i>
+                        </button>
                     </div>
                 </div>
-
-                <div id="page-familia" class="page-content">
-                    <div class="calendar-container">
-                        <h3>👥 Mi Familia</h3>
-                        <div id="family-members"></div>
-                    </div>
-                </div>
-
-                <div id="page-estadisticas" class="page-content">
-                    <div class="calendar-container">
-                        <h3>📊 Estadísticas</h3>
-                        <div id="stats-content">
-                            <p>Estadísticas de compras...</p>
-                        </div>
-                    </div>
+                <div class="calendar-grid" id="calendar-grid">
+                    <!-- Los días del calendario se cargarán dinámicamente -->
                 </div>
             </div>
         </main>
@@ -887,48 +80,53 @@
 
     <!-- Modal para selección de tienda -->
     <div id="modal-dia-tienda" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
-                <h3>Seleccionar Tienda</h3>
+                <h3><i class="fas fa-store"></i> Seleccionar Tienda</h3>
                 <span class="close" onclick="cerrarModalDiaTienda()">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="dia-info">
-                    <h4 id="modal-dia-fecha">Día seleccionado</h4>
-                    <p>Selecciona una tienda para crear tu cesta de compras</p>
+                    <h4 id="modal-dia-fecha">Cargando...</h4>
+                    <p class="dia-fecha">Selecciona una tienda para añadir productos</p>
                 </div>
                 
-                <div class="tiendas-grid">
+                <div class="tienda-lista">
                     <div class="tienda-item" onclick="seleccionarTienda('Mercadona')">
-                        <div class="tienda-icon">🛒</div>
+                        <i class="fas fa-shopping-cart"></i>
                         <div class="tienda-nombre">Mercadona</div>
-                    </div>
-                    <div class="tienda-item" onclick="seleccionarTienda('Carrefour')">
-                        <div class="tienda-icon">🛒</div>
-                        <div class="tienda-nombre">Carrefour</div>
+                        <div class="tienda-descripcion">Supermercado</div>
                     </div>
                     <div class="tienda-item" onclick="seleccionarTienda('Lidl')">
-                        <div class="tienda-icon">🛒</div>
+                        <i class="fas fa-shopping-basket"></i>
                         <div class="tienda-nombre">Lidl</div>
+                        <div class="tienda-descripcion">Descuentos</div>
                     </div>
-                    <div class="tienda-item" onclick="seleccionarTienda('Aldi')">
-                        <div class="tienda-icon">🛒</div>
-                        <div class="tienda-nombre">Aldi</div>
+                    <div class="tienda-item" onclick="seleccionarTienda('Carrefour')">
+                        <i class="fas fa-store"></i>
+                        <div class="tienda-nombre">Carrefour</div>
+                        <div class="tienda-descripcion">Hipermercado</div>
                     </div>
                     <div class="tienda-item" onclick="seleccionarTienda('Dia')">
-                        <div class="tienda-icon">🛒</div>
+                        <i class="fas fa-shopping-bag"></i>
                         <div class="tienda-nombre">Dia</div>
+                        <div class="tienda-descripcion">Supermercado</div>
+                    </div>
+                    <div class="tienda-item" onclick="seleccionarTienda('Aldi')">
+                        <i class="fas fa-tag"></i>
+                        <div class="tienda-nombre">Aldi</div>
+                        <div class="tienda-descripcion">Bajo precio</div>
+                    </div>
+                    <div class="tienda-item" onclick="seleccionarTienda('Otro')">
+                        <i class="fas fa-ellipsis-h"></i>
+                        <div class="tienda-nombre">Otro</div>
+                        <div class="tienda-descripcion">Tienda personalizada</div>
                     </div>
                 </div>
                 
-                <div class="tienda-personalizada">
-                    <div class="form-group">
-                        <label>¿Otro comercio? Introduce el nombre:</label>
-                        <input type="text" id="nombre-tienda-personalizada" placeholder="Ej: Supermercado del pueblo, Tienda local...">
-                        <small style="color: var(--text-light); display: block; margin-top: 5px;">
-                            Perfecto para comercios pequeños de tu pueblo o barrio
-                        </small>
-                    </div>
+                <div class="form-group">
+                    <label for="nombre-tienda-personalizada">Nombre de la tienda:</label>
+                    <input type="text" id="nombre-tienda-personalizada" placeholder="Introduce el nombre de tu comercio...">
                 </div>
             </div>
             <div class="modal-footer">
@@ -942,7 +140,7 @@
     <div id="modal-gestion-cestas" class="modal">
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
-                <h3>🛒 Gestión de Cestas</h3>
+                <h3><i class="fas fa-shopping-basket"></i> Gestión de Cestas</h3>
                 <span class="close" onclick="cerrarModalGestionCestas()">&times;</span>
             </div>
             <div class="modal-body">
@@ -961,18 +159,25 @@
     <div id="modal-producto" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Añadir Producto</h3>
+                <h3><i class="fas fa-plus-circle"></i> Añadir Producto</h3>
                 <span class="close" onclick="cerrarModalProducto()">&times;</span>
             </div>
             <div class="modal-body">
                 <form id="modal-producto-form">
                     <div class="form-group">
-                        <label>Nombre del producto:</label>
-                        <input type="text" id="modal-nombre" required>
+                        <label for="modal-nombre">Producto *</label>
+                        <input type="text" id="modal-nombre" name="nombre" placeholder="Ej: Leche, Pan, Manzanas..." required list="productos-sugeridos" autocomplete="off">
+                        <datalist id="productos-sugeridos">
+                            <!-- Las sugerencias se cargarán dinámicamente -->
+                        </datalist>
                     </div>
                     <div class="form-group">
                         <label>Cantidad:</label>
                         <input type="number" id="modal-cantidad" min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Precio estimado (€):</label>
+                        <input type="number" id="modal-precio" min="0" step="0.01" placeholder="0.00">
                     </div>
                     <div class="form-group">
                         <label>Categoría:</label>
@@ -986,14 +191,18 @@
                             <option value="Panadería">Panadería</option>
                             <option value="Bebidas">Bebidas</option>
                             <option value="Limpieza">Limpieza</option>
+                            <option value="Congelados">Congelados</option>
+                            <option value="Despensa">Despensa</option>
+                            <option value="Personal">Personal</option>
+                            <option value="Mascotas">Mascotas</option>
                             <option value="Otros">Otros</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>
+                        <div class="checkbox-wrapper">
                             <input type="checkbox" id="modal-urgente">
-                            Urgente
-                        </label>
+                            <label for="modal-urgente">Marca como urgente</label>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -1012,6 +221,8 @@
         let cestasActuales = [];
         let cestaSeleccionada = null;
         let modalActivo = null;
+        let productosHistorial = []; // Para autocompletado
+        let productosSugerencias = new Set(); // Para evitar duplicados
 
         // Gestor de modales
         class ModalManager {
@@ -1054,6 +265,62 @@
             }
         }
 
+        // Funciones para autocompletado y productos inteligentes
+        function cargarProductosHistorial() {
+            try {
+                const productosGuardados = localStorage.getItem('productosHistorial');
+                if (productosGuardados) {
+                    productosHistorial = JSON.parse(productosGuardados);
+                    actualizarDatalist();
+                }
+            } catch (error) {
+                console.log('Error cargando historial:', error);
+            }
+        }
+
+        function guardarProductoEnHistorial(producto) {
+            if (!productosSugerencias.has(producto.toLowerCase())) {
+                productosSugerencias.add(producto.toLowerCase());
+                productosHistorial.push({
+                    nombre: producto,
+                    timestamp: Date.now()
+                });
+                
+                // Mantener solo los últimos 50 productos
+                if (productosHistorial.length > 50) {
+                    productosHistorial = productosHistorial.slice(-50);
+                }
+                
+                localStorage.setItem('productosHistorial', JSON.stringify(productosHistorial));
+                actualizarDatalist();
+            }
+        }
+
+        function actualizarDatalist() {
+            const datalist = document.getElementById('productos-sugeridos');
+            if (datalist) {
+                const productosUnicos = [...productosSugerencias].slice(0, 20);
+                datalist.innerHTML = productosUnicos
+                    .map(producto => `<option value="${producto}">`)
+                    .join('');
+            }
+        }
+
+        function detectarDuplicado(nombreProducto) {
+            const productosActuales = Array.from(document.querySelectorAll('.producto-nombre'))
+                .map(el => el.textContent.toLowerCase());
+            
+            return productosActuales.includes(nombreProducto.toLowerCase());
+        }
+
+        function calcularTotalCesta(productos) {
+            return productos.reduce((total, producto) => {
+                const precio = parseFloat(producto.precio) || 0;
+                const cantidad = parseInt(producto.cantidad) || 1;
+                return total + (precio * cantidad);
+            }, 0).toFixed(2);
+        }
+
         // Función para compra rápida con el botón flotante
         function crearCompraRapida() {
             // Obtener fecha de hoy
@@ -1066,23 +333,32 @@
 
         // Función para mostrar notificaciones
         function mostrarNotificacion(mensaje, tipo = 'info') {
+            // Crear elemento de notificación
             const notificacion = document.createElement('div');
             notificacion.className = `notification ${tipo}`;
-            notificacion.textContent = mensaje;
+            notificacion.innerHTML = `
+                <i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                ${mensaje}
+            `;
             
+            // Añadir al DOM
             document.body.appendChild(notificacion);
             
-            // Auto-eliminar después de 4 segundos
+            // Animación de entrada
             setTimeout(() => {
-                if (notificacion.parentNode) {
-                    notificacion.style.animation = 'slideInRight 0.3s ease reverse';
-                    setTimeout(() => {
-                        if (notificacion.parentNode) {
-                            notificacion.parentNode.removeChild(notificacion);
-                        }
-                    }, 300);
-                }
-            }, 4000);
+                notificacion.style.animation = 'slideInRight 0.3s ease';
+            }, 10);
+            
+            // Eliminar después de 4 segundos
+            setTimeout(() => {
+                notificacion.style.animation = 'slideInRight 0.3s ease reverse';
+                setTimeout(() => {
+                    if (notificacion.parentNode) {
+                        notificacion.parentNode.removeChild(notificacion);
+                    }
+                }, 300);
+            }
+            , 4000);
         }
 
         // Funciones para gestión de cestas
@@ -1201,11 +477,15 @@
                                         <div class="producto-detalles">
                                             <span class="producto-cantidad">${producto.cantidad}x</span>
                                             <span class="producto-categoria">${producto.categoria}</span>
+                                            ${producto.precio ? `<span class="producto-precio">€${producto.precio}</span>` : ''}
                                             ${producto.urgente ? '<span class="producto-urgente">Urgente</span>' : ''}
                                         </div>
                                     </div>
                                 </div>
                             `).join('')}
+                        </div>
+                        <div class="total-presupuesto">
+                            💰 Total estimado: €${calcularTotalCesta(cesta.productos)}
                         </div>
                     ` : ''}
                 </div>
@@ -1307,16 +587,18 @@
             });
             
             // Añadir selección al item actual
-            event.currentTarget.classList.add('selected');
+            event.target.closest('.tienda-item').classList.add('selected');
             
             // Guardar tienda seleccionada
             tiendaSeleccionada = tienda;
             
+            // Limpiar campo personalizado si no es "Otro"
+            if (tienda !== 'Otro') {
+                document.getElementById('nombre-tienda-personalizada').value = '';
+            }
+            
             // Habilitar botón confirmar
             document.getElementById('btn-confirmar-tienda').disabled = false;
-            
-            // Limpiar campo personalizado
-            document.getElementById('nombre-tienda-personalizada').value = '';
         }
 
         function confirmarTienda() {
@@ -1342,29 +624,6 @@
             abrirModalProducto(fechaSeleccionada, []);
         }
 
-        // Event listener para el campo personalizado
-        document.addEventListener('DOMContentLoaded', function() {
-            const campoPersonalizado = document.getElementById('nombre-tienda-personalizada');
-            if (campoPersonalizado) {
-                campoPersonalizado.addEventListener('input', function() {
-                    const botonConfirmar = document.getElementById('btn-confirmar-tienda');
-                    
-                    // Si hay texto en el campo personalizado, habilitar el botón
-                    if (this.value.trim()) {
-                        botonConfirmar.disabled = false;
-                        // Quitar selección de tiendas predefinidas
-                        document.querySelectorAll('.tienda-item').forEach(item => {
-                            item.classList.remove('selected');
-                        });
-                        tiendaSeleccionada = ''; // Limpiar selección predefinida
-                    } else {
-                        // Si no hay texto, verificar si hay tienda seleccionada
-                        botonConfirmar.disabled = !tiendaSeleccionada;
-                    }
-                });
-            }
-        });
-
         // Funciones del modal de producto
         function abrirModalProducto(fecha, productosExistentes, soloLectura = false) {
             fechaSeleccionada = fecha;
@@ -1374,6 +633,7 @@
             document.getElementById('modal-cantidad').value = '1';
             document.getElementById('modal-categoria').value = 'General';
             document.getElementById('modal-urgente').checked = false;
+            document.getElementById('modal-precio').value = '';
             
             // Si es solo lectura, deshabilitar formulario
             const formulario = document.getElementById('modal-producto-form');
@@ -1410,260 +670,365 @@
                 const cantidad = parseInt(document.getElementById('modal-cantidad').value);
                 const categoria = document.getElementById('modal-categoria').value;
                 const urgente = document.getElementById('modal-urgente').checked;
+                const precio = parseFloat(document.getElementById('modal-precio').value) || 0;
                 
+                // Validar campos
                 if (!nombre) {
-                    alert('Por favor, introduce el nombre del producto');
-                    document.getElementById('modal-nombre').focus();
+                    mostrarNotificacion('Por favor, introduce el nombre del producto', 'error');
                     return;
                 }
                 
-                // Preparar datos para enviar
-                const datosProducto = {
-                    nombre: nombre,
-                    cantidad: cantidad,
-                    categoria: categoria,
-                    urgente: urgente,
-                    fecha: fechaSeleccionada.toISOString().split('T')[0],
-                    tienda: tiendaSeleccionada || 'Sin tienda asignada'
-                };
+                // Detectar duplicados
+                if (detectarDuplicado(nombre)) {
+                    if (!confirm(`¿El producto "${nombre}" ya existe en la lista. ¿Deseas añadirlo de todas formas?`)) {
+                        return;
+                    }
+                }
                 
-                // Enviar al backend
+                // Guardar en historial
+                guardarProductoEnHistorial(nombre);
+                
+                // Enviar a servidor
                 const response = await fetch('/api/producto', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(datosProducto)
+                    body: JSON.stringify({
+                        nombre: nombre,
+                        cantidad: cantidad,
+                        categoria: categoria,
+                        urgente: urgente,
+                        precio: precio,
+                        fecha: fechaSeleccionada.toISOString().split('T')[0],
+                        tienda: tiendaSeleccionada || 'Sin tienda asignada'
+                    })
                 });
                 
                 if (response.ok) {
-                    const nuevoProducto = await response.json();
-                    console.log('Producto añadido:', nuevoProducto);
-                    
-                    // Cerrar modal
+                    mostrarNotificacion(`✅ ${nombre} añadido correctamente`, 'success');
                     cerrarModalProducto();
-                    
-                    // Recargar calendario para mostrar el nuevo producto
                     await cargarCalendarioPrincipal();
-                    
-                    // Mostrar mensaje de éxito
-                    mostrarMensajeExceso('✅ Producto añadido correctamente');
-                    
                 } else {
-                    const error = await response.json();
-                    console.error('Error añadiendo producto:', error);
-                    alert('Error al añadir el producto: ' + (error.error || 'Error desconocido'));
+                    throw new Error('Error al guardar el producto');
                 }
-                
             } catch (error) {
-                console.error('Error en guardarProductoModal:', error);
-                alert('Error al añadir el producto. Por favor, inténtalo de nuevo.');
+                console.error('Error guardando producto:', error);
+                mostrarNotificacion('Error al guardar el producto', 'error');
             }
         }
 
-        function mostrarMensajeExceso(mensaje) {
-            const mensajeDiv = document.createElement('div');
-            mensajeDiv.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: var(--success-color);
-                color: white;
-                padding: 15px 20px;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 10000;
-                font-weight: 600;
-                animation: slideIn 0.3s ease;
-            `;
-            mensajeDiv.textContent = mensaje;
-            document.body.appendChild(mensajeDiv);
-            
-            // Ocultar mensaje después de 3 segundos
-            setTimeout(() => {
-                if (mensajeDiv && mensajeDiv.parentNode) {
-                    mensajeDiv.parentNode.removeChild(mensajeDiv);
-                }
-            }, 3000);
-        }
-
-        function crearNuevaCesta(fecha) {
-            // Abrir modal de selección de tienda
-            abrirModalDiaTienda(new Date(fecha + 'T00:00:00'));
-        }
-
-        // Función principal para cargar calendario
-        async function cargarCalendarioPrincipal() {
+        // Funciones del calendario
+        async function cargarCalendarioPrincipal(mesOffset = 0) {
             try {
                 const response = await fetch('/api/lista');
                 if (response.ok) {
                     const productos = await response.json();
                     console.log('Productos recibidos:', productos);
-                    
-                    // Generar grid de 14 días (2 semanas)
-                    const grid = document.getElementById('calendar-grid');
-                    grid.innerHTML = '';
-                    grid.style.gridTemplateColumns = 'repeat(7, 1fr)';
-                    
-                    // Actualizar etiquetas
-                    const hoy = new Date();
-                    const inicioSemana1 = new Date();
-                    const finSemana2 = new Date();
-                    finSemana2.setDate(hoy.getDate() + 13);
-                    
-                    document.getElementById('semana-titulo').textContent = 'Calendario de 2 Semanas';
-                    document.getElementById('fecha-rango').textContent = `${inicioSemana1.toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' })} - ${finSemana2.toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' })}`;
-                    
-                    for (let i = 0; i < 14; i++) {
-                        const fechaDia = new Date();
-                        fechaDia.setDate(hoy.getDate() + i);
-                        
-                        const diaSemana = fechaDia.getDay();
-                        const esFinDeSemana = diaSemana === 0;
-                        const esHoy = fechaDia.toDateString() === hoy.toDateString();
-                        
-                        // Filtrar productos para este día
-                        const productosDia = productos.filter(p => {
-                            if (!p || !p.fecha_agregado) {
-                                return false;
-                            }
-                            
-                            try {
-                                const fechaProducto = new Date(p.fecha_agregado);
-                                return fechaProducto.toDateString() === fechaDia.toDateString();
-                            } catch (error) {
-                                console.warn('Error procesando fecha de producto:', p, error);
-                                return false;
-                            }
-                        });
-                        
-                        // Agrupar productos por tienda para este día
-                        let productosHTML = '';
-                        let tienePendientes = false;
-                        
-                        if (productosDia && productosDia.length > 0) {
-                            const productosPendientes = productosDia.filter(p => !p.comprado);
-                            tienePendientes = productosPendientes.length > 0;
-                            
-                            if (tienePendientes) {
-                                // Agrupar productos por tienda
-                                const productosPorTienda = {};
-                                productosPendientes.forEach(p => {
-                                    const tienda = p.tienda || 'Sin tienda asignada';
-                                    if (!productosPorTienda[tienda]) {
-                                        productosPorTienda[tienda] = [];
-                                    }
-                                    productosPorTienda[tienda].push(p);
-                                });
-                                
-                                // Si hay productos pendientes, mostrar cestas existentes
-                                if (tienePendientes) {
-                                    const tiendas = Object.keys(productosPorTienda);
-                                    if (tiendas.length === 1) {
-                                        // Una sola cesta
-                                        productosHTML = `
-                                            <div class="shopping-basket" onclick="abrirModalGestionCestas(new Date('${fechaDia.toISOString().split('T')[0]}'))">
-                                                <div class="basket-icon">🛒</div>
-                                                <div class="basket-count">${productosPorTienda[tiendas[0]].length}</div>
-                                                <div class="basket-store">${tiendas[0]}</div>
-                                            </div>
-                                        `;
-                                    } else {
-                                        // Múltiples cestas
-                                        productosHTML = `
-                                            <div class="multiple-baskets" onclick="abrirModalGestionCestas(new Date('${fechaDia.toISOString().split('T')[0]}'))">
-                                                <div class="baskets-header">
-                                                    <div class="basket-icon">🛒</div>
-                                                    <div class="basket-count">${productosPendientes.length}</div>
-                                                    <div class="basket-store">${tiendas.length} tiendas</div>
-                                                </div>
-                                            </div>
-                                        `;
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // Si no hay productos pendientes, mostrar opción de crear cesta
-                        if (!tienePendientes) {
-                            productosHTML = `
-                                <div class="simple-add-basket" onclick="crearNuevaCesta('${fechaDia.toISOString().split('T')[0]}')">
-                                    <span class="simple-basket-icon">🛒</span>
-                                    <span class="simple-basket-text">Añadir cesta</span>
-                                </div>
-                            `;
-                        }
-                        
-                        // Crear celda del día clickeable
-                        const cell = document.createElement('div');
-                        cell.className = `day-cell ${esHoy ? 'hoy' : ''} clickable`;
-                        cell.onclick = () => crearNuevaCesta(fechaDia.toISOString().split('T')[0]);
-                        
-                        const nombreDia = fechaDia.toLocaleDateString('es-ES', { weekday: 'long' });
-                        const nombreDiaCorto = nombreDia.split(',')[0];
-                        
-                        cell.innerHTML = `
-                            <div class="day-header">${nombreDiaCorto} ${esHoy ? '📍' : ''}</div>
-                            <div class="day-date">${fechaDia.getDate()} ${esFinDeSemana ? '🌴' : ''}</div>
-                            <div class="products-container">
-                                ${productosHTML}
-                            </div>
-                        `;
-                        
-                        grid.appendChild(cell);
-                    }
+                    renderizarCalendario(productos, mesOffset);
+                } else if (response.status === 401) {
+                    mostrarNotificacion('Tu sesión ha expirado. Redirigiendo al login...', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
                 } else {
-                    console.error('La respuesta no fue OK:', response.status);
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
                 }
             } catch (error) {
                 console.error('Error cargando calendario:', error);
+                mostrarNotificacion('Error al cargar el calendario', 'error');
             }
         }
 
-        // Funciones de navegación
-        function mostrarPagina(pageName) {
-            // Ocultar todas las páginas
-            document.querySelectorAll('.page-content').forEach(page => {
-                page.classList.remove('active');
+        function renderizarCalendario(productos, mesOffset = 0) {
+            const calendarGrid = document.getElementById('calendar-grid');
+            const calendarMonth = document.getElementById('calendar-month');
+            
+            // Calcular fecha base con offset
+            const fechaBase = new Date();
+            fechaBase.setDate(1);
+            fechaBase.setMonth(fechaBase.getMonth() + mesOffset);
+            
+            // Actualizar título del mes
+            const opcionesMes = { month: 'long', year: 'numeric' };
+            calendarMonth.textContent = fechaBase.toLocaleDateString('es-ES', opcionesMes);
+            
+            // Obtener primer día del mes
+            const primerDia = new Date(fechaBase.getFullYear(), fechaBase.getMonth(), 1);
+            const ultimoDia = new Date(fechaBase.getFullYear(), fechaBase.getMonth() + 1, 0);
+            
+            // Calcular días a mostrar (2 semanas = 14 días)
+            const diasAMostrar = 14;
+            let htmlCalendario = '';
+            
+            for (let i = 0; i < diasAMostrar; i++) {
+                const fechaDia = new Date(primerDia);
+                fechaDia.setDate(primerDia.getDate() + i);
+                
+                // Si nos pasamos del mes actual, continuar con el siguiente mes
+                if (fechaDia.getMonth() !== primerDia.getMonth()) {
+                    fechaDia.setMonth(fechaDia.getMonth() + 1);
+                    fechaDia.setDate(1);
+                }
+                
+                const fechaStr = fechaDia.toISOString().split('T')[0];
+                const productosDelDia = productos.filter(p => p.fecha === fechaStr);
+                const esHoy = fechaDia.toDateString() === new Date().toDateString();
+                
+                // CSS classes
+                let diaClasses = ['calendar-day'];
+                if (esHoy) diaClasses.push('today');
+                if (productosDelDia.length > 0) diaClasses.push('has-products');
+                
+                // Renderizar día
+                htmlCalendario += `
+                    <div class="${diaClasses.join(' ')}" onclick="manejarClickDia('${fechaStr}', ${productosDelDia.length})">
+                        <div class="day-header">
+                            <div class="day-number">${fechaDia.getDate()}</div>
+                            <div class="day-info">
+                                <div class="day-name">${fechaDia.toLocaleDateString('es-ES', { weekday: 'short' })}</div>
+                                <div class="day-date">${fechaDia.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}</div>
+                            </div>
+                        </div>
+                        <div class="day-products">
+                            ${renderizarProductosDia(productosDelDia, fechaDia)}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            calendarGrid.innerHTML = htmlCalendario;
+        }
+
+        function renderizarProductosDia(productos, fecha) {
+            if (productos.length === 0) {
+                return `
+                    <div class="simple-add-basket" onclick="crearNuevaCesta('${fecha.toISOString().split('T')[0]}')">
+                        <span class="simple-basket-icon">🛒</span>
+                        <span class="simple-basket-text">Añadir cesta</span>
+                    </div>
+                `;
+            }
+            
+            // Agrupar productos por tienda
+            const productosPorTienda = {};
+            productos.forEach(p => {
+                const tienda = p.tienda || 'Sin tienda asignada';
+                if (!productosPorTienda[tienda]) {
+                    productosPorTienda[tienda] = [];
+                }
+                productosPorTienda[tienda].push(p);
             });
             
-            // Desactivar todos los items del menú
+            const tiendas = Object.keys(productosPorTienda);
+            
+            if (tiendas.length === 1) {
+                // Una sola cesta
+                const tienda = tiendas[0];
+                return `
+                    <div class="shopping-basket" onclick="abrirModalGestionCestas(new Date('${fecha.toISOString().split('T')[0]}'))">
+                        <div class="basket-icon">🛒</div>
+                        <div class="basket-count">${productosPorTienda[tienda].length}</div>
+                        <div class="basket-store">${tienda}</div>
+                    </div>
+                `;
+            } else {
+                // Múltiples cestas
+                return `
+                    <div class="multiple-baskets" onclick="abrirModalGestionCestas(new Date('${fecha.toISOString().split('T')[0]}'))">
+                        <div class="baskets-header">
+                            <div class="basket-icon">🛒</div>
+                            <div class="basket-count">${productos.length}</div>
+                            <div class="basket-store">${tiendas.length} tiendas</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function manejarClickDia(fecha, cantidadProductos) {
+            if (cantidadProductos > 0) {
+                abrirModalGestionCestas(new Date(fecha + 'T00:00:00'));
+            } else {
+                crearNuevaCesta(fecha);
+            }
+        }
+
+        function crearNuevaCesta(fecha) {
+            abrirModalDiaTienda(new Date(fecha + 'T00:00:00'));
+        }
+
+        function cargarCalendarioAnterior() {
+            cargarCalendarioPrincipal(-1);
+        }
+
+        function cargarCalendarioSiguiente() {
+            cargarCalendarioPrincipal(1);
+        }
+
+        // Funciones de navegación
+        function mostrarInicio() {
+            // Actualizar estado activo del menú
+            actualizarMenuActivo('inicio');
+            
+            // Mostrar vista de inicio (calendario)
+            document.querySelector('.calendar-container').style.display = 'block';
+            
+            // Ocultar otras vistas
+            ocultarOtrasVistas();
+            
+            // Recargar calendario
+            cargarCalendarioPrincipal();
+            
+            mostrarNotificacion('🏠 Vista de inicio cargada', 'info');
+        }
+
+        function mostrarCompras() {
+            // Actualizar estado activo del menú
+            actualizarMenuActivo('compras');
+            
+            // Mostrar vista de compras (calendario con enfoque en compras)
+            document.querySelector('.calendar-container').style.display = 'block';
+            
+            // Ocultar otras vistas
+            ocultarOtrasVistas();
+            
+            // Recargar calendario
+            cargarCalendarioPrincipal();
+            
+            mostrarNotificacion('🛒 Vista de compras cargada', 'info');
+        }
+
+        function mostrarEstadisticas() {
+            // Actualizar estado activo del menú
+            actualizarMenuActivo('estadisticas');
+            
+            // Ocultar calendario
+            document.querySelector('.calendar-container').style.display = 'none';
+            
+            // Ocultar otras vistas
+            ocultarOtrasVistas();
+            
+            // Mostrar vista de estadísticas
+            mostrarVistaEstadisticas();
+            
+            mostrarNotificacion('📊 Vista de estadísticas', 'info');
+        }
+
+        function mostrarConfiguracion() {
+            // Actualizar estado activo del menú
+            actualizarMenuActivo('configuracion');
+            
+            // Ocultar calendario
+            document.querySelector('.calendar-container').style.display = 'none';
+            
+            // Ocultar otras vistas
+            ocultarOtrasVistas();
+            
+            // Mostrar vista de configuración
+            mostrarVistaConfiguracion();
+            
+            mostrarNotificacion('⚙️ Vista de configuración', 'info');
+        }
+
+        function actualizarMenuActivo(seccion) {
+            // Quitar clase active de todos los items
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
             
-            // Mostrar la página seleccionada
-            const pageElement = document.getElementById(`page-${pageName}`);
-            const navElement = document.querySelector(`[data-page="${pageName}"]`);
-            
-            if (pageElement) pageElement.classList.add('active');
-            if (navElement) navElement.classList.add('active');
-            
-            // Actualizar título
-            const titles = {
-                'compras': '📅 Calendario de Compras',
-                'familia': '👥 Mi Familia',
-                'estadisticas': '📊 Estadísticas'
+            // Añadir clase active al item correspondiente
+            const items = {
+                'inicio': 0,
+                'compras': 1,
+                'estadisticas': 2,
+                'configuracion': 3
             };
-            const titleElement = document.getElementById('page-title');
-            if (titleElement) {
-                titleElement.textContent = titles[pageName] || 'App Compras Familiares';
+            
+            if (items[seccion] !== undefined) {
+                document.querySelectorAll('.nav-item')[items[seccion]].classList.add('active');
+            }
+        }
+
+        function ocultarOtrasVistas() {
+            // Ocultar vistas adicionales si existen
+            const vistasAdicionales = document.querySelectorAll('.vista-adicional');
+            vistasAdicionales.forEach(vista => {
+                vista.style.display = 'none';
+            });
+        }
+
+        function mostrarVistaEstadisticas() {
+            const mainContent = document.querySelector('.main-content');
+            
+            // Crear vista de estadísticas si no existe
+            let vistaEstadisticas = document.getElementById('vista-estadisticas');
+            if (!vistaEstadisticas) {
+                vistaEstadisticas = document.createElement('div');
+                vistaEstadisticas.id = 'vista-estadisticas';
+                vistaEstadisticas.className = 'vista-adicional';
+                vistaEstadisticas.innerHTML = `
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <h2 class="calendar-title">
+                                <i class="fas fa-chart-bar"></i>
+                                Estadísticas de Compras
+                            </h2>
+                        </div>
+                        <div style="padding: 40px; text-align: center;">
+                            <i class="fas fa-chart-line" style="font-size: 64px; color: var(--primary-color); margin-bottom: 20px;"></i>
+                            <h3 style="color: var(--text-color); margin-bottom: 15px;">Estadísticas en desarrollo</h3>
+                            <p style="color: var(--text-light);">Próximamente podrás ver gráficos y análisis de tus compras familiares.</p>
+                            <div style="margin-top: 30px;">
+                                <button class="btn-primary" onclick="mostrarInicio()">
+                                    <i class="fas fa-arrow-left"></i> Volver al inicio
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                mainContent.appendChild(vistaEstadisticas);
             }
             
-            // Cerrar menú en móvil
-            if (window.innerWidth <= 768) {
-                const sidebar = document.getElementById('sidebar');
-                if (sidebar) sidebar.classList.remove('open');
-            }
+            vistaEstadisticas.style.display = 'block';
         }
 
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar) {
-                sidebar.classList.toggle('open');
+        function mostrarVistaConfiguracion() {
+            const mainContent = document.querySelector('.main-content');
+            
+            // Crear vista de configuración si no existe
+            let vistaConfiguracion = document.getElementById('vista-configuracion');
+            if (!vistaConfiguracion) {
+                vistaConfiguracion = document.createElement('div');
+                vistaConfiguracion.id = 'vista-configuracion';
+                vistaConfiguracion.className = 'vista-adicional';
+                vistaConfiguracion.innerHTML = `
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <h2 class="calendar-title">
+                                <i class="fas fa-cog"></i>
+                                Configuración
+                            </h2>
+                        </div>
+                        <div style="padding: 40px; text-align: center;">
+                            <i class="fas fa-tools" style="font-size: 64px; color: var(--primary-color); margin-bottom: 20px;"></i>
+                            <h3 style="color: var(--text-color); margin-bottom: 15px;">Configuración en desarrollo</h3>
+                            <p style="color: var(--text-light);">Próximamente podrás personalizar tu experiencia y preferencias.</p>
+                            <div style="margin-top: 30px;">
+                                <button class="btn-primary" onclick="mostrarInicio()">
+                                    <i class="fas fa-arrow-left"></i> Volver al inicio
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                mainContent.appendChild(vistaConfiguracion);
             }
+            
+            vistaConfiguracion.style.display = 'block';
         }
 
+        // Funciones de usuario
         async function cargarUsuario() {
             try {
                 const response = await fetch('/api/usuario');
@@ -1671,12 +1036,12 @@
                     usuarioActual = await response.json();
                     console.log('Usuario cargado:', usuarioActual);
                     
-                    // Actualizar UI con datos del usuario
-                    const userElement = document.getElementById('user-name');
-                    if (userElement) {
-                        userElement.textContent = usuarioActual.nombre;
-                    }
-                } else {
+                    // Actualizar UI
+                    document.getElementById('user-name').textContent = usuarioActual.nombre;
+                    
+                    // Cargar familia después de cargar usuario
+                    await cargarFamilia();
+                } else if (response.status === 401) {
                     window.location.href = '/login';
                 }
             } catch (error) {
@@ -1692,28 +1057,10 @@
                     const miembros = await response.json();
                     console.log('Miembros cargados:', miembros);
                     
-                    const familyInfo = document.getElementById('family-info');
-                    const familyMembers = document.getElementById('family-members');
-                    
-                    if (familyInfo) {
-                        familyInfo.innerHTML = `
-                            <div style="text-align: center; color: var(--text-light);">
-                                <small>👥 ${miembros.length} miembros en la familia</small>
-                            </div>
-                        `;
-                    }
-                    
-                    if (familyMembers) {
-                        familyMembers.innerHTML = `
-                            <div class="members-list">
-                                ${miembros.map(m => `
-                                    <div class="member-item">
-                                        <div class="member-name">${m.nombre}</div>
-                                        <div class="member-email">${m.email || 'Sin email'}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `;
+                    if (miembros.length > 1) {
+                        document.getElementById('family-name').textContent = `${miembros.length} miembros`;
+                    } else {
+                        document.getElementById('family-name').textContent = 'Familiar individual';
                     }
                 }
             } catch (error) {
@@ -1721,7 +1068,7 @@
             }
         }
 
-        async function logout() {
+        async function cerrarSesion() {
             try {
                 await fetch('/api/logout', { method: 'POST' });
                 window.location.href = '/login';
@@ -1730,13 +1077,13 @@
             }
         }
 
-        // Event listeners para cerrar modales al hacer clic fuera
+        // Event listeners
         window.onclick = function(event) {
             // Verificar si el click fue en el fondo de un modal
             if (event.target.classList.contains('modal')) {
                 ModalManager.cerrarTodos();
             }
-        }
+        };
 
         // Event listener para tecla Escape
         document.addEventListener('keydown', function(event) {
@@ -1745,9 +1092,29 @@
             }
         });
 
+        // Event listener para el campo personalizado
+        document.addEventListener('DOMContentLoaded', function() {
+            const campoPersonalizado = document.getElementById('nombre-tienda-personalizada');
+            if (campoPersonalizado) {
+                campoPersonalizado.addEventListener('input', function() {
+                    const botonConfirmar = document.getElementById('btn-confirmar-tienda');
+                    
+                    if (this.value.trim()) {
+                        tiendaSeleccionada = ''; // Limpiar selección predefinida
+                        botonConfirmar.disabled = false;
+                    } else {
+                        botonConfirmar.disabled = !tiendaSeleccionada;
+                    }
+                });
+            }
+        });
+
         // Inicialización
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('DOM cargado, iniciando inicialización...');
+            
+            // Cargar productos del historial para autocompletado
+            cargarProductosHistorial();
             
             try {
                 console.log('Paso 1: Cargando usuario...');
@@ -1759,6 +1126,7 @@
                 console.log('Paso 4: Calendario cargado');
             } catch (error) {
                 console.error('Error en inicialización:', error);
+                mostrarNotificacion('Error al inicializar la aplicación', 'error');
             }
             
             // Auto-recargar calendario cada 30 segundos

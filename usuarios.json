@@ -3,7 +3,7 @@
     "id": 1,
     "nombre": "Eduardo",
     "email": "edu_wor99@hotmail.com",
-    "password": "4e1e2290413bf00e60347cb035ac78dbdbaf1ef43ac3ca7d016bb8bec28f1b02",
+    "password": "scrypt:32768:8:1$QmtqZEBz8ny1gSb1$239868f4f26b7b7f20debb518c3d02dc3685c490680283ccc4db5a0f966298c43fcc8e3d35358b2d6f7f9386606cef35ce6c255cfd084d5c782f824c063664b9",
     "id_familia": 1,
     "fecha_registro": "2026-03-20 00:40:20"
   },

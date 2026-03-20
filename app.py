@@ -1,7 +1,7 @@
 # Aplicación de Compras Familiares
 # Permite a familias planificar sus compras semanales de forma colaborativa
 
-from flask import Flask, render_template, request, jsonify, session, redirect
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory
 import json
 import os
 import logging
@@ -356,34 +356,38 @@ def obtener_lista():
 # API de productos (rutas unificadas)
 @app.route('/api/producto', methods=['POST'])
 def agregar_producto():
-    """Agrega un producto a la lista"""
-    if 'usuario' not in session:
-        return jsonify({'error': 'No autorizado'}), 401
-    
-    data = request.json
-    if not data or not data.get('nombre', '').strip():
-        return jsonify({'error': 'El nombre del producto es obligatorio'}), 400
-    
-    listas = cargar_datos(ARCHIVO_LISTAS)
-    
-    nuevo_producto = {
-        'id': siguiente_id(listas),
-        'nombre': data['nombre'].strip(),
-        'cantidad': data.get('cantidad', 1),
-        'categoria': data.get('categoria', 'General'),
-        'tienda': data.get('tienda', 'Sin tienda asignada'),
-        'id_familia': session['usuario']['id_familia'],
-        'id_usuario_agrego': session['usuario']['id'],
-        'nombre_usuario_agrego': session['usuario']['nombre'],
-        'fecha_agregado': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'comprado': False,
-        'urgente': data.get('urgente', False)
-    }
-    
-    listas.append(nuevo_producto)
-    guardar_datos(listas, ARCHIVO_LISTAS)
-    
-    return jsonify(nuevo_producto), 201
+    """Agrega un nuevo producto a la lista"""
+    try:
+        if 'usuario' not in session:
+            return jsonify({'error': 'No autorizado'}), 401
+            
+        data = request.json
+        listas = cargar_datos(ARCHIVO_LISTAS)
+        
+        # Crear nuevo producto
+        nuevo_producto = {
+            'id': str(len(listas) + 1),
+            'nombre': data['nombre'],
+            'cantidad': data['cantidad'],
+            'categoria': data['categoria'],
+            'urgente': data.get('urgente', False),
+            'precio': data.get('precio', 0),  # Nuevo campo precio
+            'fecha': data['fecha'],
+            'tienda': data['tienda'],
+            'id_usuario': session['usuario']['id'],
+            'id_familia': session['usuario']['id_familia'],
+            'comprado': False,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        listas.append(nuevo_producto)
+        guardar_datos(listas, ARCHIVO_LISTAS)
+        
+        return jsonify({'mensaje': 'Producto agregado correctamente', 'producto': nuevo_producto})
+        
+    except Exception as e:
+        print(f"[DEBUG] Error agregando producto: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/producto/<int:id_producto>', methods=['PUT'])
 def actualizar_producto(id_producto):
@@ -457,3 +461,8 @@ def obtener_miembros():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)
+
+# Ruta para servir archivos estáticos
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    return send_from_directory('static', filename)

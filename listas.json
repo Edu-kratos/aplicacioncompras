@@ -23,5 +23,19 @@
     "fecha_agregado": "2026-03-20 21:24:21",
     "comprado": false,
     "urgente": false
+  },
+  {
+    "id": "3",
+    "nombre": "leche",
+    "cantidad": 1,
+    "categoria": "General",
+    "urgente": false,
+    "precio": 0,
+    "fecha": "2026-01-30",
+    "tienda": "Sin tienda asignada",
+    "id_usuario": 1,
+    "id_familia": 1,
+    "comprado": false,
+    "timestamp": "2026-03-21T00:04:33.675889"
   }
 ]
