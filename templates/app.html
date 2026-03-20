@@ -6,1132 +6,181 @@
     <title>App Compras Familiares</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div class="app-container">
         <!-- Sidebar -->
         <nav class="sidebar">
             <div class="sidebar-nav">
-                <a href="#" class="nav-item active" onclick="mostrarInicio(); return false;">
-                    <i class="fas fa-home"></i>
-                    <span>Inicio</span>
+                <a href="#" class="nav-item active">
+                    <i class="fas fa-home"></i><span>Inicio</span>
                 </a>
-                <a href="#" class="nav-item" onclick="mostrarCompras(); return false;">
-                    <i class="fas fa-shopping-basket"></i>
-                    <span>Compras</span>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-shopping-basket"></i><span>Compras</span>
                 </a>
-                <a href="#" class="nav-item" onclick="mostrarEstadisticas(); return false;">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Estadísticas</span>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-chart-bar"></i><span>Estadísticas</span>
                 </a>
-                <a href="#" class="nav-item" onclick="mostrarConfiguracion(); return false;">
-                    <i class="fas fa-cog"></i>
-                    <span>Config</span>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-cog"></i><span>Config</span>
                 </a>
-                <a href="#" class="nav-item" onclick="cerrarSesion(); return false;">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Salir</span>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-sign-out-alt"></i><span>Salir</span>
                 </a>
             </div>
         </nav>
 
         <!-- Header -->
         <header class="header">
-            <h1><i class="fas fa-shopping-cart"></i> App Compras Familiares</h1>
+            <h1><i class="fas fa-shopping-cart"></i> Compras Familiares</h1>
             <div class="user-info">
                 <div>
                     <div class="user-name" id="user-name">Cargando...</div>
                     <div class="family-name" id="family-name">Cargando...</div>
                 </div>
-                <button class="logout-btn" onclick="cerrarSesion()">
-                    <i class="fas fa-sign-out-alt"></i> Salir
+                <button class="logout-btn" id="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i>
                 </button>
             </div>
         </header>
 
         <!-- Main Content -->
         <main class="main-content">
-            <div class="calendar-container">
-                <div class="calendar-header">
-                    <h2 class="calendar-title">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span id="calendar-month">Cargando...</span>
-                    </h2>
-                    <div class="calendar-nav">
-                        <button onclick="cargarCalendarioAnterior()">
-                            <i class="fas fa-chevron-left"></i> Anterior
-                        </button>
-                        <button onclick="cargarCalendarioSiguiente()">
-                            Siguiente <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="calendar-grid" id="calendar-grid">
-                    <!-- Los días del calendario se cargarán dinámicamente -->
-                </div>
-            </div>
+            <div id="page-inicio" class="page-section"></div>
+            <div id="page-compras" class="page-section"></div>
+            <div id="page-estadisticas" class="page-section"></div>
+            <div id="page-configuracion" class="page-section"></div>
         </main>
     </div>
 
-    <!-- Botón flotante para acción rápida -->
-    <div class="fab" onclick="crearCompraRapida()" title="Añadir compra rápida">
-        <i class="fas fa-plus"></i>
-    </div>
+    <!-- FAB -->
+    <button class="fab" title="Añadir compra rápida"><i class="fas fa-plus"></i></button>
 
-    <!-- Modal para selección de tienda -->
+    <!-- Modal: Seleccionar Tienda -->
     <div id="modal-dia-tienda" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-content" style="max-width:480px">
             <div class="modal-header">
                 <h3><i class="fas fa-store"></i> Seleccionar Tienda</h3>
-                <span class="close" onclick="cerrarModalDiaTienda()">&times;</span>
+                <span class="close" data-close-modal>&times;</span>
             </div>
             <div class="modal-body">
-                <div class="dia-info">
-                    <h4 id="modal-dia-fecha">Cargando...</h4>
-                    <p class="dia-fecha">Selecciona una tienda para añadir productos</p>
-                </div>
-                
+                <p id="modal-dia-fecha" style="font-weight:600;margin-bottom:16px;color:var(--text)"></p>
                 <div class="tienda-lista">
-                    <div class="tienda-item" onclick="seleccionarTienda('Mercadona')">
+                    <div class="tienda-item">
                         <i class="fas fa-shopping-cart"></i>
                         <div class="tienda-nombre">Mercadona</div>
                         <div class="tienda-descripcion">Supermercado</div>
                     </div>
-                    <div class="tienda-item" onclick="seleccionarTienda('Lidl')">
+                    <div class="tienda-item">
                         <i class="fas fa-shopping-basket"></i>
                         <div class="tienda-nombre">Lidl</div>
                         <div class="tienda-descripcion">Descuentos</div>
                     </div>
-                    <div class="tienda-item" onclick="seleccionarTienda('Carrefour')">
+                    <div class="tienda-item">
                         <i class="fas fa-store"></i>
                         <div class="tienda-nombre">Carrefour</div>
                         <div class="tienda-descripcion">Hipermercado</div>
                     </div>
-                    <div class="tienda-item" onclick="seleccionarTienda('Dia')">
+                    <div class="tienda-item">
                         <i class="fas fa-shopping-bag"></i>
                         <div class="tienda-nombre">Dia</div>
                         <div class="tienda-descripcion">Supermercado</div>
                     </div>
-                    <div class="tienda-item" onclick="seleccionarTienda('Aldi')">
+                    <div class="tienda-item">
                         <i class="fas fa-tag"></i>
                         <div class="tienda-nombre">Aldi</div>
                         <div class="tienda-descripcion">Bajo precio</div>
                     </div>
-                    <div class="tienda-item" onclick="seleccionarTienda('Otro')">
+                    <div class="tienda-item">
                         <i class="fas fa-ellipsis-h"></i>
                         <div class="tienda-nombre">Otro</div>
-                        <div class="tienda-descripcion">Tienda personalizada</div>
+                        <div class="tienda-descripcion">Personalizado</div>
                     </div>
                 </div>
-                
                 <div class="form-group">
                     <label for="nombre-tienda-personalizada">Nombre de la tienda:</label>
-                    <input type="text" id="nombre-tienda-personalizada" placeholder="Introduce el nombre de tu comercio...">
+                    <input type="text" id="nombre-tienda-personalizada" placeholder="Tu comercio...">
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" onclick="cerrarModalDiaTienda()">Cancelar</button>
-                <button type="button" onclick="confirmarTienda()" class="btn-primary" id="btn-confirmar-tienda" disabled>Confirmar</button>
+                <button class="btn btn-outline" data-close-modal>Cancelar</button>
+                <button class="btn btn-primary" id="btn-confirmar-tienda" disabled>Confirmar</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal para gestión de cestas -->
+    <!-- Modal: Gestión de Cestas -->
     <div id="modal-gestion-cestas" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-content" style="max-width:520px">
             <div class="modal-header">
-                <h3><i class="fas fa-shopping-basket"></i> Gestión de Cestas</h3>
-                <span class="close" onclick="cerrarModalGestionCestas()">&times;</span>
+                <h3><i class="fas fa-shopping-basket"></i> Cestas del día</h3>
+                <span class="close" data-close-modal>&times;</span>
             </div>
             <div class="modal-body">
-                <div class="cestas-container" id="cestas-container">
-                    <!-- Las cestas se cargarán dinámicamente -->
-                </div>
+                <div class="cestas-container" id="cestas-container"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" onclick="cerrarModalGestionCestas()">Cerrar</button>
-                <button type="button" onclick="crearNuevaCestaModal()" class="btn-primary">Nueva Cesta</button>
+                <button class="btn btn-outline" data-close-modal>Cerrar</button>
+                <button class="btn btn-primary" id="btn-nueva-cesta"><i class="fas fa-plus"></i> Nueva Cesta</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal para añadir producto -->
+    <!-- Modal: Añadir Producto -->
     <div id="modal-producto" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width:480px">
             <div class="modal-header">
                 <h3><i class="fas fa-plus-circle"></i> Añadir Producto</h3>
-                <span class="close" onclick="cerrarModalProducto()">&times;</span>
+                <span class="close" data-close-modal>&times;</span>
             </div>
             <div class="modal-body">
-                <form id="modal-producto-form">
-                    <div class="form-group">
-                        <label for="modal-nombre">Producto *</label>
-                        <input type="text" id="modal-nombre" name="nombre" placeholder="Ej: Leche, Pan, Manzanas..." required list="productos-sugeridos" autocomplete="off">
-                        <datalist id="productos-sugeridos">
-                            <!-- Las sugerencias se cargarán dinámicamente -->
-                        </datalist>
+                <div class="form-group">
+                    <label for="modal-nombre">Producto *</label>
+                    <input type="text" id="modal-nombre" placeholder="Ej: Leche, Pan..." required list="productos-sugeridos" autocomplete="off">
+                    <datalist id="productos-sugeridos"></datalist>
+                </div>
+                <div class="form-group">
+                    <label for="modal-cantidad">Cantidad</label>
+                    <input type="number" id="modal-cantidad" min="1" value="1">
+                </div>
+                <div class="form-group">
+                    <label for="modal-precio">Precio estimado (€)</label>
+                    <input type="number" id="modal-precio" min="0" step="0.01" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="modal-categoria">Categoría</label>
+                    <select id="modal-categoria">
+                        <option value="General">General</option>
+                        <option value="Frutas">Frutas</option>
+                        <option value="Verduras">Verduras</option>
+                        <option value="Carnes">Carnes</option>
+                        <option value="Pescado">Pescado</option>
+                        <option value="Lácteos">Lácteos</option>
+                        <option value="Panadería">Panadería</option>
+                        <option value="Bebidas">Bebidas</option>
+                        <option value="Limpieza">Limpieza</option>
+                        <option value="Congelados">Congelados</option>
+                        <option value="Despensa">Despensa</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Mascotas">Mascotas</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="modal-urgente">
+                        <label for="modal-urgente">Urgente</label>
                     </div>
-                    <div class="form-group">
-                        <label>Cantidad:</label>
-                        <input type="number" id="modal-cantidad" min="1" value="1">
-                    </div>
-                    <div class="form-group">
-                        <label>Precio estimado (€):</label>
-                        <input type="number" id="modal-precio" min="0" step="0.01" placeholder="0.00">
-                    </div>
-                    <div class="form-group">
-                        <label>Categoría:</label>
-                        <select id="modal-categoria">
-                            <option value="General">General</option>
-                            <option value="Frutas">Frutas</option>
-                            <option value="Verduras">Verduras</option>
-                            <option value="Carnes">Carnes</option>
-                            <option value="Pescado">Pescado</option>
-                            <option value="Lácteos">Lácteos</option>
-                            <option value="Panadería">Panadería</option>
-                            <option value="Bebidas">Bebidas</option>
-                            <option value="Limpieza">Limpieza</option>
-                            <option value="Congelados">Congelados</option>
-                            <option value="Despensa">Despensa</option>
-                            <option value="Personal">Personal</option>
-                            <option value="Mascotas">Mascotas</option>
-                            <option value="Otros">Otros</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <div class="checkbox-wrapper">
-                            <input type="checkbox" id="modal-urgente">
-                            <label for="modal-urgente">Marca como urgente</label>
-                        </div>
-                    </div>
-                </form>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" onclick="cerrarModalProducto()">Cancelar</button>
-                <button type="button" onclick="guardarProductoModal()" class="btn-primary">Añadir Producto</button>
+                <button class="btn btn-outline" data-close-modal>Cancelar</button>
+                <button class="btn btn-primary" id="btn-guardar-producto"><i class="fas fa-plus"></i> Añadir</button>
             </div>
         </div>
     </div>
 
-    <script>
-        // Variables globales
-        let usuarioActual = null;
-        let fechaSeleccionada = null;
-        let tiendaSeleccionada = null;
-        let cestasActuales = [];
-        let cestaSeleccionada = null;
-        let modalActivo = null;
-        let productosHistorial = []; // Para autocompletado
-        let productosSugerencias = new Set(); // Para evitar duplicados
-
-        // Gestor de modales
-        class ModalManager {
-            static modals = {
-                tienda: 'modal-dia-tienda',
-                producto: 'modal-producto',
-                gestion: 'modal-gestion-cestas'
-            };
-
-            static cerrarTodos() {
-                Object.values(this.modals).forEach(modalId => {
-                    const modal = document.getElementById(modalId);
-                    if (modal) {
-                        modal.style.display = 'none';
-                        modal.classList.remove('show');
-                    }
-                });
-                modalActivo = null;
-            }
-
-            static abrir(modalNombre) {
-                this.cerrarTodos();
-                const modal = document.getElementById(this.modals[modalNombre]);
-                if (modal) {
-                    modal.style.display = 'block';
-                    modal.classList.add('show');
-                    modalActivo = modalNombre;
-                }
-            }
-
-            static cerrar(modalNombre) {
-                const modal = document.getElementById(this.modals[modalNombre]);
-                if (modal) {
-                    modal.style.display = 'none';
-                    modal.classList.remove('show');
-                }
-                if (modalActivo === modalNombre) {
-                    modalActivo = null;
-                }
-            }
-        }
-
-        // Funciones para autocompletado y productos inteligentes
-        function cargarProductosHistorial() {
-            try {
-                const productosGuardados = localStorage.getItem('productosHistorial');
-                if (productosGuardados) {
-                    productosHistorial = JSON.parse(productosGuardados);
-                    actualizarDatalist();
-                }
-            } catch (error) {
-                console.log('Error cargando historial:', error);
-            }
-        }
-
-        function guardarProductoEnHistorial(producto) {
-            if (!productosSugerencias.has(producto.toLowerCase())) {
-                productosSugerencias.add(producto.toLowerCase());
-                productosHistorial.push({
-                    nombre: producto,
-                    timestamp: Date.now()
-                });
-                
-                // Mantener solo los últimos 50 productos
-                if (productosHistorial.length > 50) {
-                    productosHistorial = productosHistorial.slice(-50);
-                }
-                
-                localStorage.setItem('productosHistorial', JSON.stringify(productosHistorial));
-                actualizarDatalist();
-            }
-        }
-
-        function actualizarDatalist() {
-            const datalist = document.getElementById('productos-sugeridos');
-            if (datalist) {
-                const productosUnicos = [...productosSugerencias].slice(0, 20);
-                datalist.innerHTML = productosUnicos
-                    .map(producto => `<option value="${producto}">`)
-                    .join('');
-            }
-        }
-
-        function detectarDuplicado(nombreProducto) {
-            const productosActuales = Array.from(document.querySelectorAll('.producto-nombre'))
-                .map(el => el.textContent.toLowerCase());
-            
-            return productosActuales.includes(nombreProducto.toLowerCase());
-        }
-
-        function calcularTotalCesta(productos) {
-            return productos.reduce((total, producto) => {
-                const precio = parseFloat(producto.precio) || 0;
-                const cantidad = parseInt(producto.cantidad) || 1;
-                return total + (precio * cantidad);
-            }, 0).toFixed(2);
-        }
-
-        // Función para compra rápida con el botón flotante
-        function crearCompraRapida() {
-            // Obtener fecha de hoy
-            const hoy = new Date();
-            const fechaHoy = hoy.toISOString().split('T')[0];
-            
-            // Abrir modal de tienda para hoy
-            abrirModalDiaTienda(hoy);
-        }
-
-        // Función para mostrar notificaciones
-        function mostrarNotificacion(mensaje, tipo = 'info') {
-            // Crear elemento de notificación
-            const notificacion = document.createElement('div');
-            notificacion.className = `notification ${tipo}`;
-            notificacion.innerHTML = `
-                <i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                ${mensaje}
-            `;
-            
-            // Añadir al DOM
-            document.body.appendChild(notificacion);
-            
-            // Animación de entrada
-            setTimeout(() => {
-                notificacion.style.animation = 'slideInRight 0.3s ease';
-            }, 10);
-            
-            // Eliminar después de 4 segundos
-            setTimeout(() => {
-                notificacion.style.animation = 'slideInRight 0.3s ease reverse';
-                setTimeout(() => {
-                    if (notificacion.parentNode) {
-                        notificacion.parentNode.removeChild(notificacion);
-                    }
-                }, 300);
-            }
-            , 4000);
-        }
-
-        // Funciones para gestión de cestas
-        function abrirModalGestionCestas(fecha) {
-            console.log('abrirModalGestionCestas llamado con fecha:', fecha);
-            fechaSeleccionada = fecha;
-            
-            // Cargar cestas del día
-            cargarCestasDelDia(fecha);
-            
-            // Usar gestor de modales
-            ModalManager.abrir('gestion');
-        }
-
-        function cerrarModalGestionCestas() {
-            ModalManager.cerrar('gestion');
-            cestaSeleccionada = null;
-        }
-
-        async function cargarCestasDelDia(fecha) {
-            console.log('cargarCestasDelDia llamado con fecha:', fecha);
-            try {
-                const response = await fetch('/api/lista');
-                if (response.ok) {
-                    const productos = await response.json();
-                    console.log('Productos recibidos:', productos);
-                    
-                    // Filtrar productos por fecha - CORREGIDO
-                    const fechaStr = fecha.toISOString().split('T')[0];
-                    console.log('Fecha string para filtrar:', fechaStr);
-                    
-                    const productosDelDia = productos.filter(p => {
-                        console.log('Comparando:', p.fecha, 'con', fechaStr, 'resultado:', p.fecha === fechaStr);
-                        return p.fecha === fechaStr;
-                    });
-                    
-                    console.log('Productos del día:', productosDelDia);
-                    
-                    // Agrupar por tienda
-                    const cestasPorTienda = {};
-                    productosDelDia.forEach(producto => {
-                        const tienda = producto.tienda || 'Sin tienda asignada';
-                        if (!cestasPorTienda[tienda]) {
-                            cestasPorTienda[tienda] = [];
-                        }
-                        cestasPorTienda[tienda].push(producto);
-                    });
-                    
-                    // Convertir a array de cestas
-                    cestasActuales = Object.entries(cestasPorTienda).map(([tienda, productos]) => ({
-                        tienda,
-                        fecha: fechaStr,
-                        productos
-                    }));
-                    
-                    console.log('Cestas actuales:', cestasActuales);
-                    
-                    // Renderizar cestas
-                    renderizarCestas();
-                } else if (response.status === 401) {
-                    // Sesión expirada
-                    mostrarNotificacion('Tu sesión ha expirado. Redirigiendo al login...', 'error');
-                    setTimeout(() => {
-                        window.location.href = '/login';
-                    }, 2000);
-                } else {
-                    throw new Error(`Error ${response.status}: ${response.statusText}`);
-                }
-            } catch (error) {
-                console.error('Error cargando cestas:', error);
-                mostrarNotificacion('Error al cargar las cestas', 'error');
-            }
-        }
-
-        function renderizarCestas() {
-            const container = document.getElementById('cestas-container');
-            
-            if (cestasActuales.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-cestas">
-                        <i class="fas fa-shopping-basket"></i>
-                        <p>No hay cestas creadas para este día</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = cestasActuales.map((cesta, index) => `
-                <div class="cesta-item" onclick="seleccionarCesta(${index})">
-                    <div class="cesta-header">
-                        <div class="cesta-tienda">
-                            <i class="fas fa-shopping-basket"></i>
-                            ${cesta.tienda}
-                        </div>
-                        <div class="cesta-fecha">
-                            ${new Date(cesta.fecha).toLocaleDateString('es-ES', { weekday: 'short', month: 'short', day: 'numeric' })}
-                        </div>
-                    </div>
-                    <div class="cesta-acciones">
-                        <button class="cesta-btn ver" onclick="event.stopPropagation(); verProductosCesta(${index})" title="Ver productos">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="cesta-btn editar" onclick="event.stopPropagation(); editarCesta(${index})" title="Editar cesta">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="cesta-btn eliminar" onclick="event.stopPropagation(); eliminarCesta(${index})" title="Eliminar cesta">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                    ${cesta.productos.length > 0 ? `
-                        <div class="cesta-productos">
-                            ${cesta.productos.map(producto => `
-                                <div class="producto-item">
-                                    <div class="producto-info">
-                                        <div class="producto-nombre">${producto.nombre}</div>
-                                        <div class="producto-detalles">
-                                            <span class="producto-cantidad">${producto.cantidad}x</span>
-                                            <span class="producto-categoria">${producto.categoria}</span>
-                                            ${producto.precio ? `<span class="producto-precio">€${producto.precio}</span>` : ''}
-                                            ${producto.urgente ? '<span class="producto-urgente">Urgente</span>' : ''}
-                                        </div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div class="total-presupuesto">
-                            💰 Total estimado: €${calcularTotalCesta(cesta.productos)}
-                        </div>
-                    ` : ''}
-                </div>
-            `).join('');
-        }
-
-        function seleccionarCesta(index) {
-            cestaSeleccionada = cestasActuales[index];
-            
-            // Cerrar gestión y abrir productos
-            ModalManager.cerrar('gestion');
-            abrirModalProducto(new Date(cestaSeleccionada.fecha), cestaSeleccionada.productos);
-        }
-
-        function verProductosCesta(index) {
-            const cesta = cestasActuales[index];
-            
-            // Cerrar gestión y abrir productos en modo solo lectura
-            ModalManager.cerrar('gestion');
-            abrirModalProducto(new Date(cesta.fecha), cesta.productos, true);
-        }
-
-        function editarCesta(index) {
-            const cesta = cestasActuales[index];
-            
-            // Cerrar gestión y abrir productos en modo edición
-            ModalManager.cerrar('gestion');
-            abrirModalProducto(new Date(cesta.fecha), cesta.productos, false);
-        }
-
-        async function eliminarCesta(index) {
-            const cesta = cestasActuales[index];
-            
-            if (confirm(`¿Estás seguro de que quieres eliminar la cesta de ${cesta.tienda}?`)) {
-                try {
-                    // Eliminar todos los productos de la cesta
-                    for (const producto of cesta.productos) {
-                        await fetch(`/api/producto/${producto.id}`, { method: 'DELETE' });
-                    }
-                    
-                    mostrarNotificacion(`Cesta de ${cesta.tienda} eliminada correctamente`, 'success');
-                    
-                    // Recargar cestas
-                    await cargarCestasDelDia(fechaSeleccionada);
-                    
-                    // Recargar calendario
-                    await cargarCalendarioPrincipal();
-                } catch (error) {
-                    console.error('Error eliminando cesta:', error);
-                    mostrarNotificacion('Error al eliminar la cesta', 'error');
-                }
-            }
-        }
-
-        function crearNuevaCestaModal() {
-            // Cerrar gestión y abrir tienda
-            ModalManager.cerrar('gestion');
-            abrirModalDiaTienda(fechaSeleccionada);
-        }
-
-        // Funciones del modal de tienda
-        function abrirModalDiaTienda(fecha) {
-            fechaSeleccionada = fecha;
-            
-            // Formatear fecha para mostrar
-            const opcionesFecha = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const fechaFormateada = fecha.toLocaleDateString('es-ES', opcionesFecha);
-            
-            document.getElementById('modal-dia-fecha').textContent = fechaFormateada;
-            
-            // Resetear selección
-            document.querySelectorAll('.tienda-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-            
-            // Limpiar campo personalizado
-            document.getElementById('nombre-tienda-personalizada').value = '';
-            
-            // Resetear tienda seleccionada
-            tiendaSeleccionada = null;
-            
-            // Deshabilitar botón confirmar
-            document.getElementById('btn-confirmar-tienda').disabled = true;
-            
-            // Usar gestor de modales
-            ModalManager.abrir('tienda');
-        }
-
-        function cerrarModalDiaTienda() {
-            ModalManager.cerrar('tienda');
-            fechaSeleccionada = null;
-            tiendaSeleccionada = null;
-        }
-
-        function seleccionarTienda(tienda) {
-            // Quitar selección anterior
-            document.querySelectorAll('.tienda-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-            
-            // Añadir selección al item actual
-            event.target.closest('.tienda-item').classList.add('selected');
-            
-            // Guardar tienda seleccionada
-            tiendaSeleccionada = tienda;
-            
-            // Limpiar campo personalizado si no es "Otro"
-            if (tienda !== 'Otro') {
-                document.getElementById('nombre-tienda-personalizada').value = '';
-            }
-            
-            // Habilitar botón confirmar
-            document.getElementById('btn-confirmar-tienda').disabled = false;
-        }
-
-        function confirmarTienda() {
-            let tiendaFinal = tiendaSeleccionada;
-            
-            // Verificar si hay un nombre personalizado
-            const nombrePersonalizado = document.getElementById('nombre-tienda-personalizada').value.trim();
-            if (nombrePersonalizado) {
-                tiendaFinal = nombrePersonalizado;
-            }
-            
-            // Validar que tengamos una tienda
-            if (!tiendaFinal) {
-                mostrarNotificacion('Por favor, selecciona una tienda o introduce el nombre de tu comercio', 'error');
-                return;
-            }
-            
-            // Mostrar notificación de éxito
-            mostrarNotificacion(`🛒 Cesta creada para ${tiendaFinal}`, 'success');
-            
-            // Cerrar tienda y abrir producto
-            ModalManager.cerrar('tienda');
-            abrirModalProducto(fechaSeleccionada, []);
-        }
-
-        // Funciones del modal de producto
-        function abrirModalProducto(fecha, productosExistentes, soloLectura = false) {
-            fechaSeleccionada = fecha;
-            
-            // Limpiar formulario
-            document.getElementById('modal-nombre').value = '';
-            document.getElementById('modal-cantidad').value = '1';
-            document.getElementById('modal-categoria').value = 'General';
-            document.getElementById('modal-urgente').checked = false;
-            document.getElementById('modal-precio').value = '';
-            
-            // Si es solo lectura, deshabilitar formulario
-            const formulario = document.getElementById('modal-producto-form');
-            const botonGuardar = document.querySelector('#modal-producto .btn-primary');
-            
-            if (soloLectura) {
-                formulario.disabled = true;
-                botonGuardar.style.display = 'none';
-            } else {
-                formulario.disabled = false;
-                botonGuardar.style.display = 'block';
-            }
-            
-            // Usar gestor de modales
-            ModalManager.abrir('producto');
-            
-            // Enfocar en el campo de nombre si no es solo lectura
-            if (!soloLectura) {
-                setTimeout(() => {
-                    document.getElementById('modal-nombre').focus();
-                }, 100);
-            }
-        }
-
-        function cerrarModalProducto() {
-            ModalManager.cerrar('producto');
-            fechaSeleccionada = null;
-            tiendaSeleccionada = null;
-        }
-
-        async function guardarProductoModal() {
-            try {
-                const nombre = document.getElementById('modal-nombre').value.trim();
-                const cantidad = parseInt(document.getElementById('modal-cantidad').value);
-                const categoria = document.getElementById('modal-categoria').value;
-                const urgente = document.getElementById('modal-urgente').checked;
-                const precio = parseFloat(document.getElementById('modal-precio').value) || 0;
-                
-                // Validar campos
-                if (!nombre) {
-                    mostrarNotificacion('Por favor, introduce el nombre del producto', 'error');
-                    return;
-                }
-                
-                // Detectar duplicados
-                if (detectarDuplicado(nombre)) {
-                    if (!confirm(`¿El producto "${nombre}" ya existe en la lista. ¿Deseas añadirlo de todas formas?`)) {
-                        return;
-                    }
-                }
-                
-                // Guardar en historial
-                guardarProductoEnHistorial(nombre);
-                
-                // Enviar a servidor
-                const response = await fetch('/api/producto', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        nombre: nombre,
-                        cantidad: cantidad,
-                        categoria: categoria,
-                        urgente: urgente,
-                        precio: precio,
-                        fecha: fechaSeleccionada.toISOString().split('T')[0],
-                        tienda: tiendaSeleccionada || 'Sin tienda asignada'
-                    })
-                });
-                
-                if (response.ok) {
-                    mostrarNotificacion(`✅ ${nombre} añadido correctamente`, 'success');
-                    cerrarModalProducto();
-                    await cargarCalendarioPrincipal();
-                } else {
-                    throw new Error('Error al guardar el producto');
-                }
-            } catch (error) {
-                console.error('Error guardando producto:', error);
-                mostrarNotificacion('Error al guardar el producto', 'error');
-            }
-        }
-
-        // Funciones del calendario
-        async function cargarCalendarioPrincipal(mesOffset = 0) {
-            try {
-                const response = await fetch('/api/lista');
-                if (response.ok) {
-                    const productos = await response.json();
-                    console.log('Productos recibidos:', productos);
-                    renderizarCalendario(productos, mesOffset);
-                } else if (response.status === 401) {
-                    mostrarNotificacion('Tu sesión ha expirado. Redirigiendo al login...', 'error');
-                    setTimeout(() => {
-                        window.location.href = '/login';
-                    }, 2000);
-                } else {
-                    throw new Error(`Error ${response.status}: ${response.statusText}`);
-                }
-            } catch (error) {
-                console.error('Error cargando calendario:', error);
-                mostrarNotificacion('Error al cargar el calendario', 'error');
-            }
-        }
-
-        function renderizarCalendario(productos, mesOffset = 0) {
-            const calendarGrid = document.getElementById('calendar-grid');
-            const calendarMonth = document.getElementById('calendar-month');
-            
-            // Calcular fecha base con offset
-            const fechaBase = new Date();
-            fechaBase.setDate(1);
-            fechaBase.setMonth(fechaBase.getMonth() + mesOffset);
-            
-            // Actualizar título del mes
-            const opcionesMes = { month: 'long', year: 'numeric' };
-            calendarMonth.textContent = fechaBase.toLocaleDateString('es-ES', opcionesMes);
-            
-            // Obtener primer día del mes
-            const primerDia = new Date(fechaBase.getFullYear(), fechaBase.getMonth(), 1);
-            const ultimoDia = new Date(fechaBase.getFullYear(), fechaBase.getMonth() + 1, 0);
-            
-            // Calcular días a mostrar (2 semanas = 14 días)
-            const diasAMostrar = 14;
-            let htmlCalendario = '';
-            
-            for (let i = 0; i < diasAMostrar; i++) {
-                const fechaDia = new Date(primerDia);
-                fechaDia.setDate(primerDia.getDate() + i);
-                
-                // Si nos pasamos del mes actual, continuar con el siguiente mes
-                if (fechaDia.getMonth() !== primerDia.getMonth()) {
-                    fechaDia.setMonth(fechaDia.getMonth() + 1);
-                    fechaDia.setDate(1);
-                }
-                
-                const fechaStr = fechaDia.toISOString().split('T')[0];
-                const productosDelDia = productos.filter(p => p.fecha === fechaStr);
-                const esHoy = fechaDia.toDateString() === new Date().toDateString();
-                
-                // CSS classes
-                let diaClasses = ['calendar-day'];
-                if (esHoy) diaClasses.push('today');
-                if (productosDelDia.length > 0) diaClasses.push('has-products');
-                
-                // Renderizar día
-                htmlCalendario += `
-                    <div class="${diaClasses.join(' ')}" onclick="manejarClickDia('${fechaStr}', ${productosDelDia.length})">
-                        <div class="day-header">
-                            <div class="day-number">${fechaDia.getDate()}</div>
-                            <div class="day-info">
-                                <div class="day-name">${fechaDia.toLocaleDateString('es-ES', { weekday: 'short' })}</div>
-                                <div class="day-date">${fechaDia.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}</div>
-                            </div>
-                        </div>
-                        <div class="day-products">
-                            ${renderizarProductosDia(productosDelDia, fechaDia)}
-                        </div>
-                    </div>
-                `;
-            }
-            
-            calendarGrid.innerHTML = htmlCalendario;
-        }
-
-        function renderizarProductosDia(productos, fecha) {
-            if (productos.length === 0) {
-                return `
-                    <div class="simple-add-basket" onclick="crearNuevaCesta('${fecha.toISOString().split('T')[0]}')">
-                        <span class="simple-basket-icon">🛒</span>
-                        <span class="simple-basket-text">Añadir cesta</span>
-                    </div>
-                `;
-            }
-            
-            // Agrupar productos por tienda
-            const productosPorTienda = {};
-            productos.forEach(p => {
-                const tienda = p.tienda || 'Sin tienda asignada';
-                if (!productosPorTienda[tienda]) {
-                    productosPorTienda[tienda] = [];
-                }
-                productosPorTienda[tienda].push(p);
-            });
-            
-            const tiendas = Object.keys(productosPorTienda);
-            
-            if (tiendas.length === 1) {
-                // Una sola cesta
-                const tienda = tiendas[0];
-                return `
-                    <div class="shopping-basket" onclick="abrirModalGestionCestas(new Date('${fecha.toISOString().split('T')[0]}'))">
-                        <div class="basket-icon">🛒</div>
-                        <div class="basket-count">${productosPorTienda[tienda].length}</div>
-                        <div class="basket-store">${tienda}</div>
-                    </div>
-                `;
-            } else {
-                // Múltiples cestas
-                return `
-                    <div class="multiple-baskets" onclick="abrirModalGestionCestas(new Date('${fecha.toISOString().split('T')[0]}'))">
-                        <div class="baskets-header">
-                            <div class="basket-icon">🛒</div>
-                            <div class="basket-count">${productos.length}</div>
-                            <div class="basket-store">${tiendas.length} tiendas</div>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        function manejarClickDia(fecha, cantidadProductos) {
-            if (cantidadProductos > 0) {
-                abrirModalGestionCestas(new Date(fecha + 'T00:00:00'));
-            } else {
-                crearNuevaCesta(fecha);
-            }
-        }
-
-        function crearNuevaCesta(fecha) {
-            abrirModalDiaTienda(new Date(fecha + 'T00:00:00'));
-        }
-
-        function cargarCalendarioAnterior() {
-            cargarCalendarioPrincipal(-1);
-        }
-
-        function cargarCalendarioSiguiente() {
-            cargarCalendarioPrincipal(1);
-        }
-
-        // Funciones de navegación
-        function mostrarInicio() {
-            // Actualizar estado activo del menú
-            actualizarMenuActivo('inicio');
-            
-            // Mostrar vista de inicio (calendario)
-            document.querySelector('.calendar-container').style.display = 'block';
-            
-            // Ocultar otras vistas
-            ocultarOtrasVistas();
-            
-            // Recargar calendario
-            cargarCalendarioPrincipal();
-            
-            mostrarNotificacion('🏠 Vista de inicio cargada', 'info');
-        }
-
-        function mostrarCompras() {
-            // Actualizar estado activo del menú
-            actualizarMenuActivo('compras');
-            
-            // Mostrar vista de compras (calendario con enfoque en compras)
-            document.querySelector('.calendar-container').style.display = 'block';
-            
-            // Ocultar otras vistas
-            ocultarOtrasVistas();
-            
-            // Recargar calendario
-            cargarCalendarioPrincipal();
-            
-            mostrarNotificacion('🛒 Vista de compras cargada', 'info');
-        }
-
-        function mostrarEstadisticas() {
-            // Actualizar estado activo del menú
-            actualizarMenuActivo('estadisticas');
-            
-            // Ocultar calendario
-            document.querySelector('.calendar-container').style.display = 'none';
-            
-            // Ocultar otras vistas
-            ocultarOtrasVistas();
-            
-            // Mostrar vista de estadísticas
-            mostrarVistaEstadisticas();
-            
-            mostrarNotificacion('📊 Vista de estadísticas', 'info');
-        }
-
-        function mostrarConfiguracion() {
-            // Actualizar estado activo del menú
-            actualizarMenuActivo('configuracion');
-            
-            // Ocultar calendario
-            document.querySelector('.calendar-container').style.display = 'none';
-            
-            // Ocultar otras vistas
-            ocultarOtrasVistas();
-            
-            // Mostrar vista de configuración
-            mostrarVistaConfiguracion();
-            
-            mostrarNotificacion('⚙️ Vista de configuración', 'info');
-        }
-
-        function actualizarMenuActivo(seccion) {
-            // Quitar clase active de todos los items
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // Añadir clase active al item correspondiente
-            const items = {
-                'inicio': 0,
-                'compras': 1,
-                'estadisticas': 2,
-                'configuracion': 3
-            };
-            
-            if (items[seccion] !== undefined) {
-                document.querySelectorAll('.nav-item')[items[seccion]].classList.add('active');
-            }
-        }
-
-        function ocultarOtrasVistas() {
-            // Ocultar vistas adicionales si existen
-            const vistasAdicionales = document.querySelectorAll('.vista-adicional');
-            vistasAdicionales.forEach(vista => {
-                vista.style.display = 'none';
-            });
-        }
-
-        function mostrarVistaEstadisticas() {
-            const mainContent = document.querySelector('.main-content');
-            
-            // Crear vista de estadísticas si no existe
-            let vistaEstadisticas = document.getElementById('vista-estadisticas');
-            if (!vistaEstadisticas) {
-                vistaEstadisticas = document.createElement('div');
-                vistaEstadisticas.id = 'vista-estadisticas';
-                vistaEstadisticas.className = 'vista-adicional';
-                vistaEstadisticas.innerHTML = `
-                    <div class="calendar-container">
-                        <div class="calendar-header">
-                            <h2 class="calendar-title">
-                                <i class="fas fa-chart-bar"></i>
-                                Estadísticas de Compras
-                            </h2>
-                        </div>
-                        <div style="padding: 40px; text-align: center;">
-                            <i class="fas fa-chart-line" style="font-size: 64px; color: var(--primary-color); margin-bottom: 20px;"></i>
-                            <h3 style="color: var(--text-color); margin-bottom: 15px;">Estadísticas en desarrollo</h3>
-                            <p style="color: var(--text-light);">Próximamente podrás ver gráficos y análisis de tus compras familiares.</p>
-                            <div style="margin-top: 30px;">
-                                <button class="btn-primary" onclick="mostrarInicio()">
-                                    <i class="fas fa-arrow-left"></i> Volver al inicio
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                mainContent.appendChild(vistaEstadisticas);
-            }
-            
-            vistaEstadisticas.style.display = 'block';
-        }
-
-        function mostrarVistaConfiguracion() {
-            const mainContent = document.querySelector('.main-content');
-            
-            // Crear vista de configuración si no existe
-            let vistaConfiguracion = document.getElementById('vista-configuracion');
-            if (!vistaConfiguracion) {
-                vistaConfiguracion = document.createElement('div');
-                vistaConfiguracion.id = 'vista-configuracion';
-                vistaConfiguracion.className = 'vista-adicional';
-                vistaConfiguracion.innerHTML = `
-                    <div class="calendar-container">
-                        <div class="calendar-header">
-                            <h2 class="calendar-title">
-                                <i class="fas fa-cog"></i>
-                                Configuración
-                            </h2>
-                        </div>
-                        <div style="padding: 40px; text-align: center;">
-                            <i class="fas fa-tools" style="font-size: 64px; color: var(--primary-color); margin-bottom: 20px;"></i>
-                            <h3 style="color: var(--text-color); margin-bottom: 15px;">Configuración en desarrollo</h3>
-                            <p style="color: var(--text-light);">Próximamente podrás personalizar tu experiencia y preferencias.</p>
-                            <div style="margin-top: 30px;">
-                                <button class="btn-primary" onclick="mostrarInicio()">
-                                    <i class="fas fa-arrow-left"></i> Volver al inicio
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                mainContent.appendChild(vistaConfiguracion);
-            }
-            
-            vistaConfiguracion.style.display = 'block';
-        }
-
-        // Funciones de usuario
-        async function cargarUsuario() {
-            try {
-                const response = await fetch('/api/usuario');
-                if (response.ok) {
-                    usuarioActual = await response.json();
-                    console.log('Usuario cargado:', usuarioActual);
-                    
-                    // Actualizar UI
-                    document.getElementById('user-name').textContent = usuarioActual.nombre;
-                    
-                    // Cargar familia después de cargar usuario
-                    await cargarFamilia();
-                } else if (response.status === 401) {
-                    window.location.href = '/login';
-                }
-            } catch (error) {
-                console.error('Error cargando usuario:', error);
-                window.location.href = '/login';
-            }
-        }
-
-        async function cargarFamilia() {
-            try {
-                const response = await fetch('/api/familia/miembros');
-                if (response.ok) {
-                    const miembros = await response.json();
-                    console.log('Miembros cargados:', miembros);
-                    
-                    if (miembros.length > 1) {
-                        document.getElementById('family-name').textContent = `${miembros.length} miembros`;
-                    } else {
-                        document.getElementById('family-name').textContent = 'Familiar individual';
-                    }
-                }
-            } catch (error) {
-                console.error('Error cargando familia:', error);
-            }
-        }
-
-        async function cerrarSesion() {
-            try {
-                await fetch('/api/logout', { method: 'POST' });
-                window.location.href = '/login';
-            } catch (error) {
-                window.location.href = '/login';
-            }
-        }
-
-        // Event listeners
-        window.onclick = function(event) {
-            // Verificar si el click fue en el fondo de un modal
-            if (event.target.classList.contains('modal')) {
-                ModalManager.cerrarTodos();
-            }
-        };
-
-        // Event listener para tecla Escape
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                ModalManager.cerrarTodos();
-            }
-        });
-
-        // Event listener para el campo personalizado
-        document.addEventListener('DOMContentLoaded', function() {
-            const campoPersonalizado = document.getElementById('nombre-tienda-personalizada');
-            if (campoPersonalizado) {
-                campoPersonalizado.addEventListener('input', function() {
-                    const botonConfirmar = document.getElementById('btn-confirmar-tienda');
-                    
-                    if (this.value.trim()) {
-                        tiendaSeleccionada = ''; // Limpiar selección predefinida
-                        botonConfirmar.disabled = false;
-                    } else {
-                        botonConfirmar.disabled = !tiendaSeleccionada;
-                    }
-                });
-            }
-        });
-
-        // Inicialización
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log('DOM cargado, iniciando inicialización...');
-            
-            // Cargar productos del historial para autocompletado
-            cargarProductosHistorial();
-            
-            try {
-                console.log('Paso 1: Cargando usuario...');
-                await cargarUsuario();
-                console.log('Paso 2: Usuario cargado, cargando familia...');
-                await cargarFamilia();
-                console.log('Paso 3: Familia cargada, cargando calendario...');
-                await cargarCalendarioPrincipal();
-                console.log('Paso 4: Calendario cargado');
-            } catch (error) {
-                console.error('Error en inicialización:', error);
-                mostrarNotificacion('Error al inicializar la aplicación', 'error');
-            }
-            
-            // Auto-recargar calendario cada 30 segundos
-            setInterval(cargarCalendarioPrincipal, 30000);
-        });
-    </script>
+    <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

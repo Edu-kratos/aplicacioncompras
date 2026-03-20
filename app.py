@@ -1,7 +1,7 @@
 # Aplicación de Compras Familiares
 # Permite a familias planificar sus compras semanales de forma colaborativa
 
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import json
 import os
 import logging
@@ -70,6 +70,72 @@ def verificar_password(password, hash_guardado):
         return check_password_hash(hash_guardado, password)
     # Fallback: formato legacy SHA-256 (usuarios existentes)
     return hashlib.sha256(password.encode()).hexdigest() == hash_guardado
+
+# Esquema canónico de producto
+CAMPOS_PRODUCTO = ('id', 'nombre', 'cantidad', 'categoria', 'urgente', 'precio',
+                   'fecha', 'tienda', 'id_usuario', 'nombre_usuario', 'id_familia',
+                   'comprado', 'fecha_agregado')
+
+def migrar_productos():
+    """Migra productos antiguos al esquema actual en el arranque"""
+    listas = cargar_datos(ARCHIVO_LISTAS)
+    if not listas:
+        return
+    modificado = False
+    for p in listas:
+        # Corregir IDs string a int
+        if isinstance(p.get('id'), str):
+            try:
+                p['id'] = int(p['id'])
+                modificado = True
+            except ValueError:
+                pass
+        # Migrar campos renombrados
+        if 'id_usuario_agrego' in p and 'id_usuario' not in p:
+            p['id_usuario'] = p.pop('id_usuario_agrego')
+            p['nombre_usuario'] = p.pop('nombre_usuario_agrego', 'Desconocido')
+            modificado = True
+        if 'id_usuario' not in p:
+            p['id_usuario'] = p.get('id_usuario_agrego', 0)
+            modificado = True
+        if 'nombre_usuario' not in p:
+            p['nombre_usuario'] = p.get('nombre_usuario_agrego', 'Desconocido')
+            modificado = True
+        # Añadir campos faltantes con defaults
+        if 'precio' not in p:
+            p['precio'] = 0
+            modificado = True
+        if 'fecha' not in p:
+            p['fecha'] = p.get('fecha_agregado', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))[:10]
+            modificado = True
+        if 'tienda' not in p:
+            p['tienda'] = 'Sin tienda asignada'
+            modificado = True
+        if 'fecha_agregado' not in p:
+            ts = p.pop('timestamp', None)
+            if ts:
+                try:
+                    dt = datetime.fromisoformat(ts)
+                    p['fecha_agregado'] = dt.strftime('%Y-%m-%d %H:%M:%S')
+                except (ValueError, TypeError):
+                    p['fecha_agregado'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                p['fecha_agregado'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            modificado = True
+        elif 'timestamp' in p:
+            p.pop('timestamp', None)
+            modificado = True
+        # Limpiar campos legacy sobrantes
+        for legacy in ('id_usuario_agrego', 'nombre_usuario_agrego'):
+            if legacy in p:
+                p.pop(legacy)
+                modificado = True
+    if modificado:
+        guardar_datos(listas, ARCHIVO_LISTAS)
+        logger.info('Productos migrados al esquema actual')
+
+# Ejecutar migración al arrancar
+migrar_productos()
 
 # Rutas principales
 @app.route('/')
@@ -300,23 +366,6 @@ def api_logout():
     return jsonify({'mensaje': 'Sesión cerrada'})
 
 # API de lista de compras
-FORMATOS_FECHA = [
-    '%Y-%m-%d %H:%M:%S',
-    '%Y-%m-%d %H:%M',
-    '%Y-%m-%d %H:%M:%S.%f'
-]
-
-def normalizar_fecha(fecha_str):
-    """Intenta parsear una fecha en múltiples formatos y devuelve formato normalizado o None"""
-    if not isinstance(fecha_str, str):
-        return None
-    for formato in FORMATOS_FECHA:
-        try:
-            return datetime.strptime(fecha_str, formato).strftime('%Y-%m-%d %H:%M:%S')
-        except ValueError:
-            continue
-    return None
-
 @app.route('/api/lista', methods=['GET'])
 def obtener_lista():
     """Obtiene la lista de compras del usuario"""
@@ -329,65 +378,47 @@ def obtener_lista():
     
     # Filtrar productos segun el tipo de usuario
     if id_familia:
-        productos_familia = [p for p in listas if p.get('id_familia') == id_familia]
+        productos = [p for p in listas if p.get('id_familia') == id_familia]
     else:
-        productos_familia = [p for p in listas if p.get('id_usuario_agrego') == id_usuario_actual]
-    
-    # Validar productos antes de devolver
-    campos_requeridos = ('id', 'nombre', 'categoria', 'cantidad', 'fecha_agregado')
-    productos_validos = []
-    for p in productos_familia:
-        if not all(key in p for key in campos_requeridos):
-            logger.warning(f"Producto inválido (campos faltantes): {p.get('id', '?')}")
-            continue
-        
-        fecha_normalizada = normalizar_fecha(p['fecha_agregado'])
-        if fecha_normalizada is None:
-            logger.warning(f"Fecha inválida en producto {p.get('id', '?')}: {p['fecha_agregado']}")
-            continue
-        
-        p['fecha_agregado'] = fecha_normalizada
-        productos_validos.append(p)
+        productos = [p for p in listas if p.get('id_usuario') == id_usuario_actual]
     
     # Ordenar por fecha agregado (mas reciente primero)
-    productos_validos.sort(key=lambda x: x['fecha_agregado'], reverse=True)
-    return jsonify(productos_validos)
+    productos.sort(key=lambda x: x.get('fecha_agregado', ''), reverse=True)
+    return jsonify(productos)
 
 # API de productos (rutas unificadas)
 @app.route('/api/producto', methods=['POST'])
 def agregar_producto():
     """Agrega un nuevo producto a la lista"""
-    try:
-        if 'usuario' not in session:
-            return jsonify({'error': 'No autorizado'}), 401
-            
-        data = request.json
-        listas = cargar_datos(ARCHIVO_LISTAS)
-        
-        # Crear nuevo producto
-        nuevo_producto = {
-            'id': str(len(listas) + 1),
-            'nombre': data['nombre'],
-            'cantidad': data['cantidad'],
-            'categoria': data['categoria'],
-            'urgente': data.get('urgente', False),
-            'precio': data.get('precio', 0),  # Nuevo campo precio
-            'fecha': data['fecha'],
-            'tienda': data['tienda'],
-            'id_usuario': session['usuario']['id'],
-            'id_familia': session['usuario']['id_familia'],
-            'comprado': False,
-            'timestamp': datetime.now().isoformat()
-        }
-        
-        listas.append(nuevo_producto)
-        guardar_datos(listas, ARCHIVO_LISTAS)
-        
-        return jsonify({'mensaje': 'Producto agregado correctamente', 'producto': nuevo_producto})
-        
-    except Exception as e:
-        print(f"[DEBUG] Error agregando producto: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+    if 'usuario' not in session:
+        return jsonify({'error': 'No autorizado'}), 401
+    
+    data = request.json
+    if not data or not data.get('nombre', '').strip():
+        return jsonify({'error': 'El nombre del producto es obligatorio'}), 400
+    
+    listas = cargar_datos(ARCHIVO_LISTAS)
+    
+    nuevo_producto = {
+        'id': siguiente_id(listas),
+        'nombre': data['nombre'].strip(),
+        'cantidad': data.get('cantidad', 1),
+        'categoria': data.get('categoria', 'General'),
+        'urgente': data.get('urgente', False),
+        'precio': data.get('precio', 0),
+        'fecha': data.get('fecha', datetime.now().strftime('%Y-%m-%d')),
+        'tienda': data.get('tienda', 'Sin tienda asignada'),
+        'id_usuario': session['usuario']['id'],
+        'nombre_usuario': session['usuario']['nombre'],
+        'id_familia': session['usuario']['id_familia'],
+        'comprado': False,
+        'fecha_agregado': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    }
+    
+    listas.append(nuevo_producto)
+    guardar_datos(listas, ARCHIVO_LISTAS)
+    
+    return jsonify({'mensaje': 'Producto agregado correctamente', 'producto': nuevo_producto}), 201
 
 @app.route('/api/producto/<int:id_producto>', methods=['PUT'])
 def actualizar_producto(id_producto):
@@ -395,29 +426,26 @@ def actualizar_producto(id_producto):
     if 'usuario' not in session:
         return jsonify({'error': 'No autorizado'}), 401
     
+    data = request.json
+    if not data:
+        return jsonify({'error': 'Datos requeridos'}), 400
+    
     listas = cargar_datos(ARCHIVO_LISTAS)
     id_familia = session['usuario']['id_familia']
     
     for i, producto in enumerate(listas):
         if producto['id'] == id_producto and producto.get('id_familia') == id_familia:
-            data = request.json
+            campos_editables = ('comprado', 'cantidad', 'urgente', 'precio', 'categoria', 'tienda', 'nombre')
+            for campo in campos_editables:
+                if campo in data:
+                    producto[campo] = data[campo]
             
-            if 'comprado' in data:
-                producto['comprado'] = data['comprado']
-                if data['comprado']:
-                    producto['fecha_comprado'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    producto['id_usuario_compro'] = session['usuario']['id']
-                    producto['nombre_usuario_compro'] = session['usuario']['nombre']
-            
-            if 'cantidad' in data:
-                producto['cantidad'] = data['cantidad']
-            
-            if 'urgente' in data:
-                producto['urgente'] = data['urgente']
+            if data.get('comprado'):
+                producto['fecha_comprado'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                producto['comprado_por'] = session['usuario']['nombre']
             
             listas[i] = producto
             guardar_datos(listas, ARCHIVO_LISTAS)
-            
             return jsonify(producto)
     
     return jsonify({'error': 'Producto no encontrado'}), 404
@@ -459,10 +487,73 @@ def obtener_miembros():
     
     return jsonify(miembros)
 
+@app.route('/api/estadisticas', methods=['GET'])
+def api_estadisticas():
+    """Devuelve estadísticas de compras de la familia"""
+    if 'usuario' not in session:
+        return jsonify({'error': 'No autorizado'}), 401
+    
+    listas = cargar_datos(ARCHIVO_LISTAS)
+    id_familia = session['usuario']['id_familia']
+    id_usuario = session['usuario']['id']
+    
+    if id_familia:
+        productos = [p for p in listas if p.get('id_familia') == id_familia]
+    else:
+        productos = [p for p in listas if p.get('id_usuario') == id_usuario]
+    
+    total = len(productos)
+    comprados = sum(1 for p in productos if p.get('comprado'))
+    pendientes = total - comprados
+    urgentes = sum(1 for p in productos if p.get('urgente') and not p.get('comprado'))
+    
+    def gasto(p):
+        return (p.get('precio', 0) or 0) * (p.get('cantidad', 1) or 1)
+    
+    gasto_total = sum(gasto(p) for p in productos if p.get('comprado'))
+    gasto_estimado = sum(gasto(p) for p in productos)
+    
+    por_categoria = {}
+    for p in productos:
+        cat = p.get('categoria', 'General')
+        if cat not in por_categoria:
+            por_categoria[cat] = {'cantidad': 0, 'gasto': 0}
+        por_categoria[cat]['cantidad'] += 1
+        por_categoria[cat]['gasto'] = round(por_categoria[cat]['gasto'] + gasto(p), 2)
+    
+    por_tienda = {}
+    for p in productos:
+        tienda = p.get('tienda', 'Sin tienda')
+        if tienda not in por_tienda:
+            por_tienda[tienda] = {'cantidad': 0, 'gasto': 0}
+        por_tienda[tienda]['cantidad'] += 1
+        por_tienda[tienda]['gasto'] = round(por_tienda[tienda]['gasto'] + gasto(p), 2)
+    
+    por_usuario = {}
+    for p in productos:
+        nombre = p.get('nombre_usuario', 'Desconocido')
+        if nombre not in por_usuario:
+            por_usuario[nombre] = {'agregados': 0, 'comprados': 0}
+        por_usuario[nombre]['agregados'] += 1
+        if p.get('comprado'):
+            por_usuario[nombre]['comprados'] += 1
+    
+    recientes = sorted(productos, key=lambda x: x.get('fecha_agregado', ''), reverse=True)[:10]
+    
+    return jsonify({
+        'resumen': {
+            'total': total,
+            'comprados': comprados,
+            'pendientes': pendientes,
+            'urgentes': urgentes,
+            'gasto_total': round(gasto_total, 2),
+            'gasto_estimado': round(gasto_estimado, 2)
+        },
+        'por_categoria': por_categoria,
+        'por_tienda': por_tienda,
+        'por_usuario': por_usuario,
+        'recientes': recientes
+    })
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)
-
-# Ruta para servir archivos estáticos
-@app.route('/static/<path:filename>')
-def serve_static(filename):
-    return send_from_directory('static', filename)
